@@ -7,7 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
-
+WEBSOCKET_URL = config('WEBSOCKET_URL', default='ws://localhost:8001')
+SERVER_IP = config('SERVER_IP', default='127.0.0.1')
 # Application definition
 INSTALLED_APPS = [
     'daphne',
@@ -126,7 +127,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [(config('REDIS_URL'))],
+            "hosts": [('127.0.0.1', 6379)],
         },
     },
 }
@@ -135,7 +136,10 @@ CHANNEL_LAYERS = {
 CORS_ALLOWED_ORIGINS = [
     f"http://{config('DOMAIN')}",
     f"https://{config('DOMAIN')}",
+    f"http://{config('SERVER_IP')}:8000",
+    f"http://{config('SERVER_IP')}:8001",
     "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 # Session
