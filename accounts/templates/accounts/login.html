@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}ورود - mbn13.ir{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h3>
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        ورود به حساب
+                    </h3>
+                    <p class="text-muted">به mbn13.ir خوش آمدید</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Username/Email -->
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-2"></i>نام کاربری یا ایمیل
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small">
+                                {{ form.username.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock me-2"></i>رمز عبور
+                        </label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small">
+                                {{ form.password.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Forgot Password Link -->
+                    <div class="mb-4 text-end">
+                        <a href="{% url 'forgot_password' %}" class="text-decoration-none small">
+                            رمز عبور را فراموش کرده‌اید؟
+                        </a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg btn-custom">
+                            <i class="fas fa-sign-in-alt me-2"></i>ورود
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="mb-0">
+                        حساب کاربری ندارید؟
+                        <a href="{% url 'signup' %}" class="text-decoration-none">
+                            ثبت نام کنید
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

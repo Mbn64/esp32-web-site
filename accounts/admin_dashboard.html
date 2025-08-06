@@ -1,0 +1,629 @@
+{% extends 'base.html' %}
+
+{% block title %}پنل ادمین - mbn13.ir{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-card {
+    transition: transform 0.2s;
+}
+.stats-card:hover {
+    transform: translateY(-5px);
+}
+.pending-request {
+    border-left: 4px solid #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+}
+.user-card {
+    transition: all 0.3s;
+}
+.user-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.device-status-online {
+    color: #28a745;
+}
+.device-status-offline {
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Admin Header -->
+    <div class="col-12 mb-4">
+        <div class="glass-effect p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4>
+                        <i class="fas fa-user-shield me-2"></i>
+                        پنل مدیریت سیستم
+                    </h4>
+                    <p class="mb-0">مدیریت کاربران و دستگاه‌ها</p>
+                </div>
+                <div class="text-end">
+                    <p class="mb-0">
+                        <i class="fas fa-calendar me-2"></i>
+                        {{ today|date:"Y/m/d" }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        {{ now|date:"H:i" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="col-12 mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="card stats-card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">کل کاربران</h6>
+                                <h3 class="mb-0">{{ total_users }}</h3>
+                            </div>
+                            <i class="fas fa-users fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card stats-card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">کل دستگاه‌ها</h6>
+                                <h3 class="mb-0">{{ total_devices }}</h3>
+                            </div>
+                            <i class="fas fa-microchip fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card stats-card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">درخواست‌های جدید</h6>
+                                <h3 class="mb-0">{{ pending_requests }}</h3>
+                            </div>
+                            <i class="fas fa-exclamation-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card stats-card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">دستگاه‌های آنلاین</h6>
+                                <h3 class="mb-0">{{ online_devices }}</h3>
+                            </div>
+                            <i class="fas fa-wifi fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests Section -->
+    {% if pending_device_requests %}
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    درخواست‌های در انتظار تایید ({{ pending_device_requests|length }})
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% for request in pending_device_requests %}
+                <div class="pending-request p-3 border-bottom">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <h6 class="mb-1">
+                                <i class="fas fa-microchip me-2"></i>
+                                {{ request.name }}
+                            </h6>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-user me-1"></i>
+                                {{ request.user.username }}
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-envelope me-1"></i>
+                                {{ request.user.email }}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ request.created_at|date:"Y/m/d H:i" }}
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ request.created_at|timesince }} پیش
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success btn-sm" 
+                                        onclick="approveDevice({{ request.id }})">
+                                    <i class="fas fa-check me-1"></i>تایید
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm" 
+                                        onclick="showRejectModal({{ request.id }}, '{{ request.name }}')">
+                                    <i class="fas fa-times me-1"></i>رد
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Navigation Tabs -->
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="devices-tab" data-bs-toggle="tab" data-bs-target="#devices" type="button" role="tab">
+                    <i class="fas fa-microchip me-2"></i>مدیریت دستگاه‌ها
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                    <i class="fas fa-users me-2"></i>مدیریت کاربران
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                    <i class="fas fa-history me-2"></i>تاریخچه درخواست‌ها
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="adminTabsContent">
+            <!-- Devices Tab -->
+            <div class="tab-pane fade show active" id="devices" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">تمامی دستگاه‌ها</h6>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="sortDevices('name')">
+                                    <i class="fas fa-sort-alpha-down me-1"></i>نام
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="sortDevices('date')">
+                                    <i class="fas fa-sort-numeric-down me-1"></i>تاریخ
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="sortDevices('status')">
+                                    <i class="fas fa-sort me-1"></i>وضعیت
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>نام دستگاه</th>
+                                        <th>کاربر</th>
+                                        <th>وضعیت</th>
+                                        <th>تاریخ ایجاد</th>
+                                        <th>آخرین اتصال</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for device in all_devices %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-microchip me-2"></i>
+                                            {{ device.name }}
+                                        </td>
+                                        <td>{{ device.user.username }}</td>
+                                        <td>
+                                            {% if device.status == 'pending' %}
+                                                <span class="badge bg-warning">در انتظار</span>
+                                            {% elif device.status == 'approved' %}
+                                                <span class="badge bg-success">تایید شده</span>
+                                                {% if device.is_online %}
+                                                    <i class="fas fa-circle device-status-online ms-2" title="آنلاین"></i>
+                                                {% else %}
+                                                    <i class="fas fa-circle device-status-offline ms-2" title="آفلاین"></i>
+                                                {% endif %}
+                                            {% elif device.status == 'rejected' %}
+                                                <span class="badge bg-danger">رد شده</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ device.created_at|date:"Y/m/d H:i" }}</td>
+                                        <td>
+                                            {% if device.last_seen %}
+                                                {{ device.last_seen|timesince }} پیش
+                                            {% else %}
+                                                هرگز
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                {% if device.status == 'approved' %}
+                                                    <button type="button" class="btn btn-outline-warning" 
+                                                            onclick="toggleDeviceStatus({{ device.id }})">
+                                                        <i class="fas fa-pause"></i>
+                                                    </button>
+                                                {% elif device.status == 'pending' %}
+                                                    <button type="button" class="btn btn-outline-success" 
+                                                            onclick="approveDevice({{ device.id }})">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                {% endif %}
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                        onclick="deleteDevice({{ device.id }})">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            هیچ دستگاهی ثبت نشده است
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="tab-pane fade" id="users" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">مدیریت کاربران</h6>
+                            <div class="input-group" style="width: 300px;">
+                                <input type="text" class="form-control" placeholder="جستجو بر اساس نام کاربری یا ایمیل..." 
+                                       id="user-search">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3" id="users-grid">
+                            {% for user in all_users %}
+                            <div class="col-md-6 col-lg-4 user-item" 
+                                 data-username="{{ user.username|lower }}" 
+                                 data-email="{{ user.email|lower }}">
+                                <div class="card user-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="avatar-circle bg-primary text-white me-3">
+                                                {{ user.username|first|upper }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ user.username }}</h6>
+                                                <small class="text-muted">{{ user.email }}</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <p class="mb-1">
+                                                <i class="fas fa-calendar me-2"></i>
+                                                <small>عضویت: {{ user.date_joined|date:"Y/m/d" }}</small>
+                                            </p>
+                                            <p class="mb-1">
+                                                <i class="fas fa-microchip me-2"></i>
+                                                <small>دستگاه‌ها: {{ user.devices.count }}</small>
+                                            </p>
+                                            {% with user.devices.last as last_device %}
+                                            {% if last_device %}
+                                            <p class="mb-0">
+                                                <i class="fas fa-clock me-2"></i>
+                                                <small>آخرین درخواست: {{ last_device.created_at|timesince }} پیش</small>
+                                            </p>
+                                            {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                        
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100" 
+                                                onclick="showUserDetails({{ user.id }})">
+                                            <i class="fas fa-eye me-2"></i>مشاهده جزئیات
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12 text-center text-muted py-4">
+                                هیچ کاربری ثبت نشده است
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div class="tab-pane fade" id="history" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">تاریخچه تمامی درخواست‌ها</h6>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="filterHistory('all')">همه</button>
+                                <button type="button" class="btn btn-outline-success" onclick="filterHistory('approved')">تایید شده</button>
+                                <button type="button" class="btn btn-outline-danger" onclick="filterHistory('rejected')">رد شده</button>
+                                <button type="button" class="btn btn-outline-warning" onclick="filterHistory('pending')">در انتظار</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>نام دستگاه</th>
+                                        <th>کاربر</th>
+                                        <th>تاریخ درخواست</th>
+                                        <th>وضعیت</th>
+                                        <th>تاریخ بروزرسانی</th>
+                                        <th>توضیحات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for device in device_history %}
+                                    <tr data-status="{{ device.status }}">
+                                        <td>{{ device.name }}</td>
+                                        <td>{{ device.user.username }}</td>
+                                        <td>{{ device.created_at|date:"Y/m/d H:i" }}</td>
+                                        <td>
+                                            {% if device.status == 'pending' %}
+                                                <span class="badge bg-warning">در انتظار</span>
+                                            {% elif device.status == 'approved' %}
+                                                <span class="badge bg-success">تایید شده</span>
+                                            {% elif device.status == 'rejected' %}
+                                                <span class="badge bg-danger">رد شده</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ device.updated_at|date:"Y/m/d H:i" }}</td>
+                                        <td>
+                                            {% if device.status == 'rejected' and device.rejection_reason %}
+                                                <small class="text-muted">{{ device.rejection_reason|truncatechars:50 }}</small>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            هیچ درخواستی ثبت نشده است
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-times-circle me-2"></i>رد درخواست
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>دستگاه: <strong id="reject-device-name"></strong></p>
+                <div class="mb-3">
+                    <label for="rejection-reason" class="form-label">دلیل رد درخواست:</label>
+                    <textarea class="form-control" id="rejection-reason" rows="3" 
+                              placeholder="دلیل رد درخواست را وارد کنید..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">
+                    <i class="fas fa-times me-2"></i>رد درخواست
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-2"></i>جزئیات کاربر
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="user-details-content">
+                <!-- Content loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentRejectDeviceId = null;
+
+// Approve device
+async function approveDevice(deviceId) {
+    try {
+        const response = await fetch(`/admin/approve/${deviceId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('خطا: ' + result.message);
+        }
+    } catch (error) {
+        alert('خطا در تایید درخواست');
+    }
+}
+
+// Show reject modal
+function showRejectModal(deviceId, deviceName) {
+    currentRejectDeviceId = deviceId;
+    document.getElementById('reject-device-name').textContent = deviceName;
+    document.getElementById('rejection-reason').value = '';
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+
+// Confirm reject
+async function confirmReject() {
+    const reason = document.getElementById('rejection-reason').value.trim();
+    
+    if (!reason) {
+        alert('لطفاً دلیل رد درخواست را وارد کنید');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/reject/${currentRejectDeviceId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ reason: reason })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+            location.reload();
+        } else {
+            alert('خطا: ' + result.message);
+        }
+    } catch (error) {
+        alert('خطا در رد درخواست');
+    }
+}
+
+// User search functionality
+document.getElementById('user-search').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const userItems = document.querySelectorAll('.user-item');
+    
+    userItems.forEach(item => {
+        const username = item.dataset.username;
+        const email = item.dataset.email;
+        
+        if (username.includes(searchTerm) || email.includes(searchTerm)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// Show user details
+async function showUserDetails(userId) {
+    try {
+        const response = await fetch(`/admin/user/${userId}/`);
+        const html = await response.text();
+        
+        document.getElementById('user-details-content').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('userDetailsModal')).show();
+    } catch (error) {
+        alert('خطا در بارگذاری اطلاعات کاربر');
+    }
+}
+
+// Filter history
+function filterHistory(status) {
+    const rows = document.querySelectorAll('#history tbody tr');
+    
+    rows.forEach(row => {
+        if (status === 'all') {
+            row.style.display = '';
+        } else {
+            const rowStatus = row.dataset.status;
+            row.style.display = rowStatus === status ? '' : 'none';
+        }
+    });
+    
+    // Update active button
+    document.querySelectorAll('#history .btn-group button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+// Sort devices (placeholder)
+function sortDevices(criteria) {
+    // Implementation for sorting
+    console.log('Sorting by:', criteria);
+}
+
+// Toggle device status (placeholder)
+function toggleDeviceStatus(deviceId) {
+    // Implementation for toggling device status
+    console.log('Toggling device:', deviceId);
+}
+
+// Delete device (placeholder)
+function deleteDevice(deviceId) {
+    if (confirm('آیا مطمئن هستید که می‌خواهید این دستگاه را حذف کنید؟')) {
+        // Implementation for device deletion
+        console.log('Deleting device:', deviceId);
+    }
+}
+</script>
+
+<!-- CSRF Token -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

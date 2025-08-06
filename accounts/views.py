@@ -1,242 +1,352 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
-from django.db.models import Q
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import make_password
 from django.utils import timezone
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
 from django.conf import settings
-from .forms import *
-from .models import EmailVerification, PasswordReset, User
-from .utils import send_verification_email, send_password_reset_email
+import json
 
-def check_username(request):
-    """بررسی AJAX برای در دسترس بودن نام کاربری"""
-    username = request.GET.get('username', '')
-    if username:
-        # بررسی قوانین نام کاربری
-        if username[0].isdigit():
-            return JsonResponse({
-                'available': False,
-                'message': 'نام کاربری نمی‌تواند با عدد شروع شود'
-            })
-        if not re.match(r'^[a-zA-Z0-9_]+$', username):
-            return JsonResponse({
-                'available': False,
-                'message': 'فقط حروف انگلیسی، اعداد و _ مجاز است'
-            })
-        if len(username) < 4:
-            return JsonResponse({
-                'available': False,
-                'message': 'حداقل 4 کاراکتر'
-            })
-        
-        exists = User.objects.filter(username=username).exists()
-        return JsonResponse({
-            'available': not exists,
-            'message': 'این نام کاربری قبلاً ثبت شده' if exists else 'نام کاربری در دسترس است'
-        })
-    return JsonResponse({'available': False, 'message': 'نام کاربری را وارد کنید'})
+from .models import CustomUser, ESP32Device
+from .forms import (
+    SignupForm, VerificationForm, LoginForm, 
+    ForgotPasswordForm, ResetPasswordForm, ESP32DeviceForm
+)
+from .utils import send_verification_email, send_reset_email, send_device_status_email
+
+
+def home(request):
+    """صفحه اصلی"""
+    return render(request, 'home.html')
+
 
 def signup_view(request):
+    """ثبت نام کاربر جدید"""
     if request.user.is_authenticated:
-        return redirect('devices:dashboard')
+        return redirect('dashboard')
     
     if request.method == 'POST':
-        form = SignUpForm(request.POST)
+        form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_active = False  # تا زمان تایید ایمیل
+            user.set_password(form.cleaned_data['password1'])
             user.save()
             
-            # ارسال ایمیل تایید
-            verification = EmailVerification.objects.create(user=user)
-            send_verification_email(user, verification.code)
-            
-            request.session['pending_user_id'] = user.id
-            messages.success(request, 'کد تایید به ایمیل شما ارسال شد')
-            return redirect('accounts:verify_email')
+            # ارسال کد تایید
+            if send_verification_email(user):
+                request.session['verification_user_id'] = user.id
+                messages.success(request, 'کد تایید به ایمیل شما ارسال شد')
+                return redirect('verify_email')
+            else:
+                user.delete()
+                messages.error(request, 'خطا در ارسال ایمیل. لطفاً دوباره تلاش کنید')
     else:
-        form = SignUpForm()
+        form = SignupForm()
     
     return render(request, 'accounts/signup.html', {'form': form})
 
+
 def verify_email_view(request):
-    user_id = request.session.get('pending_user_id')
+    """تایید ایمیل با کد 6 رقمی"""
+    user_id = request.session.get('verification_user_id')
     if not user_id:
-        return redirect('accounts:signup')
+        messages.error(request, 'جلسه منقضی شده. دوباره ثبت نام کنید')
+        return redirect('signup')
     
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        return redirect('accounts:signup')
+    user = get_object_or_404(CustomUser, id=user_id)
     
     if request.method == 'POST':
-        form = EmailVerificationForm(request.POST)
+        form = VerificationForm(request.POST)
         if form.is_valid():
             code = form.cleaned_data['code']
-            verification = EmailVerification.objects.filter(
-                user=user,
-                code=code,
-                is_used=False
-            ).first()
             
-            if verification and verification.is_valid():
-                verification.is_used = True
-                verification.save()
-                
-                user.is_active = True
-                user.is_email_verified = True
-                user.save()
-                
+            if user.is_verification_code_valid(code):
+                user.is_verified = True
+                user.clear_verification_code()
                 login(request, user)
-                messages.success(request, 'ثبت نام با موفقیت انجام شد')
-                return redirect('devices:dashboard')
+                del request.session['verification_user_id']
+                
+                messages.success(request, f'خوش آمدید {user.username}! حساب شما با موفقیت فعال شد')
+                return redirect('dashboard')
             else:
                 messages.error(request, 'کد تایید نامعتبر یا منقضی شده است')
     else:
-        form = EmailVerificationForm()
+        form = VerificationForm()
     
     return render(request, 'accounts/verify_email.html', {
         'form': form,
-        'email': user.email
+        'user': user
     })
 
+
 def login_view(request):
+    """ورود کاربر"""
     if request.user.is_authenticated:
-        if request.user.is_superuser:
-            return redirect('devices:admin_dashboard')
-        return redirect('devices:dashboard')
+        return redirect('dashboard')
     
     if request.method == 'POST':
-        form = LoginForm(request.POST)
+        form = LoginForm(request, data=request.POST)
         if form.is_valid():
-            username_or_email = form.cleaned_data['username_or_email']
-            password = form.cleaned_data['password']
+            username = form.cleaned_data['username']
             
-            # پیدا کردن کاربر با username یا email
-            user = User.objects.filter(
-                Q(username=username_or_email) | Q(email=username_or_email)
-            ).first()
-            
-            if user and user.check_password(password):
-                if not user.is_active:
-                    messages.error(request, 'حساب کاربری شما فعال نیست')
-                else:
+            # بررسی اگر ادمین است
+            if username == settings.ADMIN_USERNAME:
+                user = authenticate(request, username=username, password=form.cleaned_data['password'])
+                if user and user.is_superuser:
                     login(request, user)
-                    if user.is_superuser:
-                        return redirect('devices:admin_dashboard')
-                    return redirect('devices:dashboard')
-            else:
-                messages.error(request, 'نام کاربری یا رمز عبور اشتباه است')
+                    return redirect('admin_dashboard')
+            
+            # ورود کاربر عادی
+            user = form.get_user()
+            if user and user.is_verified:
+                login(request, user)
+                messages.success(request, f'خوش آمدید {user.username}!')
+                return redirect('dashboard')
+            elif user and not user.is_verified:
+                request.session['verification_user_id'] = user.id
+                send_verification_email(user)
+                messages.warning(request, 'حساب شما تایید نشده. کد تایید جدید ارسال شد')
+                return redirect('verify_email')
+        else:
+            messages.error(request, 'نام کاربری یا رمز عبور اشتباه است')
     else:
         form = LoginForm()
     
     return render(request, 'accounts/login.html', {'form': form})
 
+
 def logout_view(request):
+    """خروج کاربر"""
     logout(request)
     messages.success(request, 'با موفقیت خارج شدید')
     return redirect('home')
 
+
 def forgot_password_view(request):
+    """فراموشی رمز عبور"""
     if request.method == 'POST':
         form = ForgotPasswordForm(request.POST)
         if form.is_valid():
-            username_or_email = form.cleaned_data['username_or_email']
+            user = form.user
             
-            user = User.objects.filter(
-                Q(username=username_or_email) | Q(email=username_or_email)
-            ).first()
-            
-            if user:
-                # ایجاد کد بازیابی
-                reset = PasswordReset.objects.create(user=user)
-                send_password_reset_email(user, reset.code)
-                
+            if send_reset_email(user):
                 request.session['reset_user_id'] = user.id
                 messages.success(request, 'کد بازیابی به ایمیل شما ارسال شد')
-                return redirect('accounts:reset_password')
+                return redirect('reset_password')
             else:
-                messages.error(request, 'کاربری با این مشخصات یافت نشد')
+                messages.error(request, 'خطا در ارسال ایمیل. لطفاً دوباره تلاش کنید')
     else:
         form = ForgotPasswordForm()
     
     return render(request, 'accounts/forgot_password.html', {'form': form})
 
+
 def reset_password_view(request):
+    """بازنشانی رمز عبور"""
     user_id = request.session.get('reset_user_id')
     if not user_id:
-        return redirect('accounts:forgot_password')
+        messages.error(request, 'جلسه منقضی شده. دوباره درخواست بازیابی کنید')
+        return redirect('forgot_password')
     
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        return redirect('accounts:forgot_password')
+    user = get_object_or_404(CustomUser, id=user_id)
     
     if request.method == 'POST':
-        # ابتدا کد را بررسی می‌کنیم
-        code = request.POST.get('code')
-        if code:
-            reset = PasswordReset.objects.filter(
-                user=user,
-                code=code,
-                is_used=False
-            ).first()
+        form = ResetPasswordForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
             
-            if reset and reset.is_valid():
-                request.session['reset_verified'] = True
-                return render(request, 'accounts/reset_password.html', {
-                    'form': ResetPasswordForm(),
-                    'code_verified': True
-                })
-            else:
-                messages.error(request, 'کد نامعتبر یا منقضی شده است')
-                return redirect('accounts:forgot_password')
-        
-        # اگر کد تایید شده، رمز جدید را ست می‌کنیم
-        elif request.session.get('reset_verified'):
-            form = ResetPasswordForm(request.POST)
-            if form.is_valid():
-                user.set_password(form.cleaned_data['password'])
+            if user.is_reset_code_valid(code):
+                user.set_password(form.cleaned_data['new_password1'])
+                user.clear_reset_code()
                 user.save()
                 
-                # غیرفعال کردن کد
-                PasswordReset.objects.filter(user=user, is_used=False).update(is_used=True)
-                
-                # پاک کردن session
-                request.session.pop('reset_user_id', None)
-                request.session.pop('reset_verified', None)
-                
+                # ورود خودکار
                 login(request, user)
-                messages.success(request, 'رمز عبور با موفقیت تغییر کرد')
-                return redirect('devices:dashboard')
+                del request.session['reset_user_id']
+                
+                messages.success(request, 'رمز عبور شما با موفقیت تغییر کرد')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'کد بازیابی نامعتبر یا منقضی شده است')
+    else:
+        form = ResetPasswordForm()
     
     return render(request, 'accounts/reset_password.html', {
-        'email': user.email,
-        'code_verified': request.session.get('reset_verified', False)
+        'form': form,
+        'user': user
     })
 
-def resend_code(request):
-    """ارسال مجدد کد تایید"""
-    if request.method == 'POST':
-        user_id = request.session.get('pending_user_id') or request.session.get('reset_user_id')
-        if user_id:
-            try:
-                user = User.objects.get(id=user_id)
-                
-                if 'pending_user_id' in request.session:
-                    verification = EmailVerification.objects.create(user=user)
-                    send_verification_email(user, verification.code)
-                else:
-                    reset = PasswordReset.objects.create(user=user)
-                    send_password_reset_email(user, reset.code)
-                
-                return JsonResponse({'success': True, 'message': 'کد جدید ارسال شد'})
-            except User.DoesNotExist:
-                pass
+
+@login_required
+def dashboard_view(request):
+    """داشبورد کاربر"""
+    devices = ESP32Device.objects.filter(user=request.user).order_by('-created_at')
     
-    return JsonResponse({'success': False, 'message': 'خطا در ارسال کد'})
+    context = {
+        'devices': devices,
+        'pending_count': devices.filter(status='pending').count(),
+        'approved_count': devices.filter(status='approved').count(),
+        'rejected_count': devices.filter(status='rejected').count(),
+    }
+    
+    return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required
+def add_device_view(request):
+    """افزودن درخواست دستگاه جدید"""
+    if request.method == 'POST':
+        form = ESP32DeviceForm(request.POST)
+        if form.is_valid():
+            device = form.save(commit=False)
+            device.user = request.user
+            device.save()
+            
+            messages.success(request, f'درخواست دستگاه "{device.name}" ثبت شد و در انتظار تایید است')
+            return redirect('dashboard')
+    else:
+        form = ESP32DeviceForm()
+    
+    return render(request, 'accounts/add_device.html', {'form': form})
+
+
+@login_required
+def delete_device_view(request, device_id):
+    """حذف دستگاه"""
+    device = get_object_or_404(ESP32Device, id=device_id, user=request.user)
+    
+    if request.method == 'POST':
+        device_name = device.name
+        device.delete()
+        
+        messages.success(request, f'دستگاه "{device_name}" حذف شد')
+        return redirect('dashboard')
+    
+    return render(request, 'accounts/delete_device.html', {'device': device})
+
+
+@login_required
+def control_device_view(request, device_id):
+    """کنترل دستگاه ESP32"""
+    device = get_object_or_404(
+        ESP32Device, 
+        id=device_id, 
+        user=request.user, 
+        status='approved'
+    )
+    
+    return render(request, 'accounts/control_device.html', {'device': device})
+
+
+# AJAX Views
+@require_http_methods(["GET"])
+def check_username_availability(request):
+    """بررسی در دسترس بودن نام کاربری (AJAX)"""
+    username = request.GET.get('username', '').strip()
+    
+    if not username:
+        return JsonResponse({'available': False, 'message': 'نام کاربری وارد نشده'})
+    
+    # بررسی شروع با عدد
+    if username[0].isdigit():
+        return JsonResponse({
+            'available': False, 
+            'message': 'نام کاربری نمی‌تواند با عدد شروع شود'
+        })
+    
+    # بررسی طول
+    if len(username) < 3:
+        return JsonResponse({
+            'available': False, 
+            'message': 'نام کاربری باید حداقل 3 کاراکتر باشد'
+        })
+    
+    # بررسی یکتا بودن
+    if CustomUser.objects.filter(username=username).exists():
+        return JsonResponse({
+            'available': False, 
+            'message': 'این نام کاربری قبلاً گرفته شده'
+        })
+    
+    return JsonResponse({
+        'available': True, 
+        'message': 'این نام کاربری در دسترس است ✅'
+    })
+
+
+# Admin Views
+def is_admin(user):
+    """بررسی ادمین بودن کاربر"""
+    return user.is_authenticated and user.is_superuser
+
+
+@user_passes_test(is_admin)
+def admin_dashboard_view(request):
+    """داشبورد ادمین"""
+    # آمار کلی
+    total_users = CustomUser.objects.count()
+    total_devices = ESP32Device.objects.count()
+    pending_devices = ESP32Device.objects.filter(status='pending')
+    approved_devices = ESP32Device.objects.filter(status='approved')
+    rejected_devices = ESP32Device.objects.filter(status='rejected')
+    
+    # درخواست‌های اخیر
+    recent_requests = ESP32Device.objects.filter(
+        status='pending'
+    ).order_by('-created_at')[:10]
+    
+    context = {
+        'total_users': total_users,
+        'total_devices': total_devices,
+        'pending_count': pending_devices.count(),
+        'approved_count': approved_devices.count(),
+        'rejected_count': rejected_devices.count(),
+        'recent_requests': recent_requests,
+    }
+    
+    return render(request, 'admin/dashboard.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_approve_device(request, device_id):
+    """تایید درخواست دستگاه"""
+    device = get_object_or_404(ESP32Device, id=device_id)
+    
+    if request.method == 'POST':
+        device.status = 'approved'
+        device.generate_api_key()
+        device.save()
+        
+        # ارسال ایمیل تایید
+        send_device_status_email(device.user, device, approved=True)
+        
+        messages.success(request, f'درخواست "{device.name}" تایید شد')
+        return redirect('admin_dashboard')
+    
+    return render(request, 'admin/approve_device.html', {'device': device})
+
+
+@user_passes_test(is_admin)
+def admin_reject_device(request, device_id):
+    """رد درخواست دستگاه"""
+    device = get_object_or_404(ESP32Device, id=device_id)
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        if reason:
+            device.status = 'rejected'
+            device.rejection_reason = reason
+            device.save()
+            
+            # ارسال ایمیل رد
+            send_device_status_email(device.user, device, approved=False, reason=reason)
+            
+            messages.success(request, f'درخواست "{device.name}" رد شد')
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, 'لطفاً دلیل رد را وارد کنید')
+    
+    return render(request, 'admin/reject_device.html', {'device': device})

@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}کنترل {{ device.name }} - mbn13.ir{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Back Button -->
+    <div class="col-12 mb-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-2"></i>بازگشت به داشبورد
+        </a>
+    </div>
+
+    <!-- Device Info Card -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-microchip me-2"></i>{{ device.name }}
+                </h5>
+                
+                <div class="mb-3">
+                    <!-- Online Status -->
+                    {% if device.is_online %}
+                        <span class="badge bg-success mb-2">
+                            <i class="fas fa-circle me-1"></i>آنلاین
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary mb-2">
+                            <i class="fas fa-circle me-1"></i>آفلاین
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="device-info">
+                    <p class="mb-1">
+                        <strong>API Key:</strong>
+                        <code class="small">{{ device.api_key }}</code>
+                    </p>
+                    
+                    <p class="mb-1">
+                        <strong>تاریخ ایجاد:</strong>
+                        {{ device.created_at|date:"Y/m/d H:i" }}
+                    </p>
+                    
+                    {% if not device.is_online %}
+                        <p class="mb-0">
+                            <strong>آخرین اتصال:</strong>
+                            {{ device.last_seen|timesince }} پیش
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>پنل کنترل
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if device.is_online %}
+                    <!-- LED Control -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-lightbulb fa-3x mb-3" id="led-icon"></i>
+                                    <h6>کنترل LED</h6>
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="button" class="btn btn-success" onclick="controlLED('on')">
+                                            <i class="fas fa-power-off me-2"></i>روشن
+                                        </button>
+                                        <button type="button" class="btn btn-danger" onclick="controlLED('off')">
+                                            <i class="fas fa-power-off me-2"></i>خاموش
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-thermometer-half fa-3x text-info mb-3"></i>
+                                    <h6>وضعیت سنسورها</h6>
+                                    <div id="sensor-data">
+                                        <p class="mb-1">دما: <span id="temperature">--</span>°C</p>
+                                        <p class="mb-0">رطوبت: <span id="humidity">--</span>%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Messages -->
+                    <div class="mt-3">
+                        <div id="control-status" class="alert alert-info" style="display: none;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="status-text">در حال ارسال دستور...</span>
+                        </div>
+                    </div>
+
+                    <!-- Connection Status -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                آخرین بروزرسانی: <span id="last-update">همین الان</span>
+                            </small>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="auto-refresh" checked>
+                                <label class="form-check-label" for="auto-refresh">
+                                    بروزرسانی خودکار
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                {% else %}
+                    <!-- Offline Message -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h5>دستگاه آفلاین است</h5>
+                        <p class="text-muted mb-3">
+                            دستگاه در حال حاضر به سرور متصل نیست. 
+                            لطفاً اتصال اینترنت دستگاه را بررسی کنید.
+                        </p>
+                        <button class="btn btn-primary" onclick="location.reload()">
+                            <i class="fas fa-sync me-2"></i>بروزرسانی صفحه
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Device API endpoints
+const deviceId = {{ device.id }};
+const baseURL = '/api/device/' + deviceId;
+
+// Control LED
+async function controlLED(action) {
+    const statusDiv = document.getElementById('control-status');
+    const statusText = document.getElementById('status-text');
+    const ledIcon = document.getElementById('led-icon');
+    
+    // Show loading
+    statusDiv.className = 'alert alert-info';
+    statusDiv.style.display = 'block';
+    statusText.textContent = 'در حال ارسال دستور...';
+    
+    try {
+        const response = await fetch(`${baseURL}/control/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({
+                action: 'led',
+                value: action
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            statusDiv.className = 'alert alert-success';
+            statusText.textContent = `LED با موفقیت ${action === 'on' ? 'روشن' : 'خاموش'} شد`;
+            
+            // Update icon
+            if (action === 'on') {
+                ledIcon.className = 'fas fa-lightbulb fa-3x text-warning';
+            } else {
+                ledIcon.className = 'fas fa-lightbulb fa-3x text-muted';
+            }
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        } else {
+            throw new Error(result.message || 'خطا در ارسال دستور');
+        }
+        
+    } catch (error) {
+        statusDiv.className = 'alert alert-danger';
+        statusText.textContent = 'خطا: ' + error.message;
+    }
+}
+
+// Update sensor data
+async function updateSensorData() {
+    try {
+        const response = await fetch(`${baseURL}/status/`);
+        const data = await response.json();
+        
+        if (data.success && data.sensors) {
+            document.getElementById('temperature').textContent = data.sensors.temperature || '--';
+            document.getElementById('humidity').textContent = data.sensors.humidity || '--';
+            document.getElementById('last-update').textContent = 'همین الان';
+        }
+    } catch (error) {
+        console.error('خطا در دریافت داده سنسورها:', error);
+    }
+}
+
+// Auto refresh
+let refreshInterval;
+
+function startAutoRefresh() {
+    refreshInterval = setInterval(() => {
+        if (document.getElementById('auto-refresh').checked) {
+            updateSensorData();
+        }
+    }, 5000); // هر 5 ثانیه
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial data load
+    updateSensorData();
+    
+    // Start auto refresh
+    startAutoRefresh();
+    
+    // Handle auto-refresh toggle
+    document.getElementById('auto-refresh').addEventListener('change', function() {
+        if (this.checked) {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    });
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', stopAutoRefresh);
+</script>
+
+<!-- Add CSRF Token for AJAX -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+{% endblock %}

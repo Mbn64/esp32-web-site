@@ -1,89 +1,108 @@
 {% extends 'base.html' %}
 
-{% block title %}صفحه اصلی - MBN13{% endblock %}
+{% block title %}mbn13.ir - صفحه اصلی{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Hero Section -->
-    <div class="row align-items-center min-vh-50 py-5">
-        <div class="col-lg-6">
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Hero Section -->
+        <div class="glass-effect p-5 text-center text-white mb-5">
             <h1 class="display-4 fw-bold mb-4">
-                <i class="fas fa-microchip text-primary"></i>
-                پلتفرم کنترل IoT
+                <i class="fas fa-microchip me-3"></i>
+                سیستم مدیریت ESP32
             </h1>
             <p class="lead mb-4">
-                با MBN13 دستگاه‌های ESP32 خود را به راحتی مدیریت کنید. 
-                کنترل از راه دور، مانیتورینگ لحظه‌ای و امنیت بالا.
+                پلتفرم هوشمند کنترل و مدیریت دستگاه‌های ESP32 از راه دور
             </p>
-            <div class="d-flex gap-3">
-                {% if not user.is_authenticated %}
-                    <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-rocket me-2"></i>
-                        شروع کنید
+            {% if not user.is_authenticated %}
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{% url 'signup' %}" class="btn btn-primary btn-custom btn-lg me-3">
+                        <i class="fas fa-user-plus me-2"></i>ثبت نام رایگان
                     </a>
-                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-sign-in-alt me-2"></i>
-                        ورود
+                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-custom btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>ورود به حساب
                     </a>
-                {% else %}
-                    <a href="{% url 'devices:dashboard' %}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-tachometer-alt me-2"></i>
-                        داشبورد
+                </div>
+            {% else %}
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{% url 'dashboard' %}" class="btn btn-success btn-custom btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>رفتن به داشبورد
                     </a>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
-        <div class="col-lg-6">
-            <img src="{% static 'img/iot-hero.svg' %}" alt="IoT" class="img-fluid">
-        </div>
-    </div>
 
-    <!-- Features -->
-    <div class="row g-4 py-5">
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
-                    <h4>امنیت بالا</h4>
-                    <p class="text-muted">
-                        API Key منحصر به فرد برای هر دستگاه و احراز هویت دو مرحله‌ای
-                    </p>
+        <!-- Features Section -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body p-4">
+                        <i class="fas fa-wifi fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">اتصال بی‌سیم</h5>
+                        <p class="card-text">
+                            دستگاه‌های ESP32 خود را به صورت بی‌سیم و امن به سیستم متصل کنید
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body p-4">
+                        <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">کنترل از راه دور</h5>
+                        <p class="card-text">
+                            دستگاه‌هایتان را از هر نقطه‌ای از جهان کنترل کنید
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body p-4">
+                        <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title">امنیت بالا</h5>
+                        <p class="card-text">
+                            سیستم API Key منحصر به فرد و رمزگذاری قوی
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
-                    <h4>کنترل از هر جا</h4>
-                    <p class="text-muted">
-                        دستگاه‌های خود را از هر مکان و با هر دستگاهی کنترل کنید
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
-                    <h4>مانیتورینگ لحظه‌ای</h4>
-                    <p class="text-muted">
-                        وضعیت دستگاه‌ها را به صورت real-time مشاهده کنید
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- About Section -->
-    <div class="row py-5">
-        <div class="col-lg-8 mx-auto text-center">
-            <h2 class="mb-4">درباره ما</h2>
-            <p class="lead text-muted">
-                MBN13 یک پلتفرم قدرتمند برای مدیریت و کنترل دستگاه‌های IoT است. 
-                با استفاده از تکنولوژی‌های روز دنیا، امکان کنترل امن و آسان دستگاه‌های 
-                ESP32 را برای شما فراهم می‌کنیم.
-            </p>
+        <!-- About Section -->
+        <div class="card">
+            <div class="card-body p-5">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-info-circle me-2"></i>درباره mbn13.ir
+                </h3>
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <p class="lead text-center mb-4">
+                            پلتفرم mbn13.ir برای ساده‌سازی فرآیند مدیریت و کنترل دستگاه‌های ESP32 طراحی شده است.
+                        </p>
+                        <ul class="list-unstyled">
+                            <li class="mb-3">
+                                <i class="fas fa-check text-success me-3"></i>
+                                <strong>ثبت نام آسان:</strong> تنها با چند کلیک حساب کاربری ایجاد کنید
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check text-success me-3"></i>
+                                <strong>تایید ایمیل:</strong> امنیت حساب با تایید ایمیل تضمین می‌شود
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check text-success me-3"></i>
+                                <strong>مدیریت دستگاه:</strong> درخواست، تایید و کنترل ESP32ها
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check text-success me-3"></i>
+                                <strong>پنل ادمین:</strong> مدیریت کاربران و درخواست‌ها
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

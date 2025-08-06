@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}افزودن دستگاه - mbn13.ir{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Back Button -->
+        <div class="mb-3">
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-2"></i>بازگشت به داشبورد
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                    <h3>افزودن دستگاه ESP32 جدید</h3>
+                    <p class="text-muted">
+                        برای اضافه کردن دستگاه جدید، نام آن را وارد کنید
+                    </p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            <i class="fas fa-tag me-2"></i>نام دستگاه
+                        </label>
+                        {{ form.name }}
+                        <div class="form-text">
+                            نام توصیفی برای دستگاه انتخاب کنید (مثال: لامپ اتاق خواب، سنسور آشپزخانه)
+                        </div>
+                        {% if form.name.errors %}
+                            <div class="text-danger small">
+                                {{ form.name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>توجه:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>درخواست شما پس از ثبت به ادمین سایت ارسال می‌شود</li>
+                            <li>پس از تایید، API Key از طریق ایمیل برای شما ارسال خواهد شد</li>
+                            <li>API Key را در کد ESP32 خود قرار دهید</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg btn-custom">
+                            <i class="fas fa-paper-plane me-2"></i>ارسال درخواست
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Process Flow -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-route me-2"></i>فرآیند تایید دستگاه
+                </h5>
+                
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="p-3">
+                            <i class="fas fa-plus-circle fa-2x text-primary mb-2"></i>
+                            <h6>1. ثبت درخواست</h6>
+                            <small class="text-muted">نام دستگاه را وارد کنید</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="p-3">
+                            <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                            <h6>2. بررسی ادمین</h6>
+                            <small class="text-muted">منتظر تایید ادمین باشید</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="p-3">
+                            <i class="fas fa-key fa-2x text-success mb-2"></i>
+                            <h6>3. دریافت API Key</h6>
+                            <small class="text-muted">API Key از طریق ایمیل ارسال می‌شود</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="p-3">
+                            <i class="fas fa-cogs fa-2x text-info mb-2"></i>
+                            <h6>4. کنترل دستگاه</h6>
+                            <small class="text-muted">شروع به استفاده از دستگاه</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,63 +1,109 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
-import random
+import secrets
 import string
 
-class User(AbstractUser):
+class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
-    is_email_verified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+    verification_code = models.CharField(max_length=6, blank=True, null=True)
+    verification_code_expires = models.DateTimeField(blank=True, null=True)
+    reset_code = models.CharField(max_length=6, blank=True, null=True)
+    reset_code_expires = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
-    
-    class Meta:
-        db_table = 'users'
-        verbose_name = 'کاربر'
-        verbose_name_plural = 'کاربران'
 
-class EmailVerification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    code = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
-    is_used = models.BooleanField(default=False)
-    
-    def save(self, *args, **kwargs):
-        if not self.code:
-            self.code = ''.join(random.choices(string.digits, k=6))
-        if not self.expires_at:
-            self.expires_at = timezone.now() + timezone.timedelta(minutes=10)
-        super().save(*args, **kwargs)
-    
-    def is_valid(self):
-        return not self.is_used and timezone.now() < self.expires_at
-    
-    class Meta:
-        db_table = 'email_verifications'
-        verbose_name = 'تایید ایمیل'
-        verbose_name_plural = 'تایید ایمیل‌ها'
+    # Email as main identifier
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
-class PasswordReset(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    code = models.CharField(max_length=6)
+    def generate_verification_code(self):
+        """تولید کد تایید 6 رقمی"""
+        self.verification_code = ''.join(secrets.choice(string.digits) for _ in range(6))
+        self.verification_code_expires = timezone.now() + timezone.timedelta(minutes=15)
+        self.save()
+        return self.verification_code
+
+    def generate_reset_code(self):
+        """تولید کد بازیابی 6 رقمی"""
+        self.reset_code = ''.join(secrets.choice(string.digits) for _ in range(6))
+        self.reset_code_expires = timezone.now() + timezone.timedelta(minutes=15)
+        self.save()
+        return self.reset_code
+
+    def is_verification_code_valid(self, code):
+        """بررسی اعتبار کد تایید"""
+        if not self.verification_code or not self.verification_code_expires:
+            return False
+        return (
+            self.verification_code == code and
+            timezone.now() <= self.verification_code_expires
+        )
+
+    def is_reset_code_valid(self, code):
+        """بررسی اعتبار کد بازیابی"""
+        if not self.reset_code or not self.reset_code_expires:
+            return False
+        return (
+            self.reset_code == code and
+            timezone.now() <= self.reset_code_expires
+        )
+
+    def clear_verification_code(self):
+        """پاک کردن کد تایید"""
+        self.verification_code = None
+        self.verification_code_expires = None
+        self.save()
+
+    def clear_reset_code(self):
+        """پاک کردن کد بازیابی"""
+        self.reset_code = None
+        self.reset_code_expires = None
+        self.save()
+
+    def __str__(self):
+        return f"{self.username} ({self.email})"
+
+
+class ESP32Device(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'در حال بررسی'),
+        ('approved', 'تایید شده'),
+        ('rejected', 'رد شده'),
+    ]
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='devices')
+    name = models.CharField(max_length=100, verbose_name='نام دستگاه')
+    api_key = models.CharField(max_length=32, unique=True, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    rejection_reason = models.TextField(blank=True, null=True, verbose_name='دلیل رد')
+    is_online = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
-    is_used = models.BooleanField(default=False)
-    
-    def save(self, *args, **kwargs):
-        if not self.code:
-            self.code = ''.join(random.choices(string.digits, k=6))
-        if not self.expires_at:
-            self.expires_at = timezone.now() + timezone.timedelta(minutes=15)
-        super().save(*args, **kwargs)
-    
-    def is_valid(self):
-        return not self.is_used and timezone.now() < self.expires_at
-    
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def generate_api_key(self):
+        """تولید API Key یکتا"""
+        self.api_key = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
+        self.save()
+        return self.api_key
+
+    def mark_online(self):
+        """علامت‌گذاری دستگاه به عنوان آنلاین"""
+        self.is_online = True
+        self.last_seen = timezone.now()
+        self.save()
+
+    def mark_offline(self):
+        """علامت‌گذاری دستگاه به عنوان آفلاین"""
+        self.is_online = False
+        self.save()
+
     class Meta:
-        db_table = 'password_resets'
-        verbose_name = 'بازیابی رمز'
-        verbose_name_plural = 'بازیابی رمزها'
+        ordering = ['-created_at']
+        verbose_name = 'دستگاه ESP32'
+        verbose_name_plural = 'دستگاه‌های ESP32'
+
+    def __str__(self):
+        return f"{self.name} - {self.user.username}"
