@@ -102,7 +102,7 @@
                         {% if user.is_superuser %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'admin_dashboard' %}">
-                                    <i class="fas fa-cogs me-1"></i>پنل ادمین
+                                    <i class="fas fa-cogs me-1"></i>پنل مدیریت
                                 </a>
                             </li>
                         {% endif %}
@@ -119,6 +119,14 @@
                                 <li><a class="dropdown-item" href="{% url 'dashboard' %}">
                                     <i class="fas fa-tachometer-alt me-2"></i>داشبورد
                                 </a></li>
+                                {% if user.is_superuser %}
+                                    <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}">
+                                        <i class="fas fa-cogs me-2"></i>پنل مدیریت
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin/">
+                                        <i class="fas fa-database me-2"></i>ادمین Django
+                                    </a></li>
+                                {% endif %}
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'logout' %}">
                                     <i class="fas fa-sign-out-alt me-2"></i>خروج

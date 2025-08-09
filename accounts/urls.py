@@ -8,6 +8,7 @@ urlpatterns = [
     # احراز هویت کاربران
     path('signup/', views.signup_view, name='signup'),
     path('verify-email/', views.verify_email_view, name='verify_email'),
+    path('resend-verification/', views.resend_verification_view, name='resend_verification'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('forgot-password/', views.forgot_password_view, name='forgot_password'),
@@ -16,14 +17,26 @@ urlpatterns = [
     # داشبورد کاربر
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('add-device/', views.add_device_view, name='add_device'),
-    path('delete-device/<int:device_id>/', views.delete_device_view, name='delete_device'),
-    path('control/<int:device_id>/', views.control_device_view, name='control_device'),
+    path('delete-device/<uuid:device_id>/', views.delete_device_view, name='delete_device'),
+    path('control/<uuid:device_id>/', views.control_device_view, name='control_device'),
     
     # AJAX
     path('ajax/check-username/', views.check_username_availability, name='check_username'),
     
-    # ادمین
-    path('admin-dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
-    path('admin/approve/<int:device_id>/', views.admin_approve_device, name='admin_approve_device'),
-    path('admin/reject/<int:device_id>/', views.admin_reject_device, name='admin_reject_device'),
+    # ادمین - داشبورد اصلی
+    path('management/', views.admin_dashboard_view, name='admin_dashboard'),
+    path('management/approve/<uuid:device_id>/', views.admin_approve_device, name='admin_approve_device'),
+    path('management/reject/<uuid:device_id>/', views.admin_reject_device, name='admin_reject_device'),
+    
+    # ادمین - مدیریت کاربران
+    path('management/users/', views.admin_users_view, name='admin_users'),
+    path('management/users/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
+    path('management/users/<int:user_id>/ban/', views.admin_ban_user, name='admin_ban_user'),
+    path('management/users/<int:user_id>/unban/', views.admin_unban_user, name='admin_unban_user'),
+    
+    # ادمین - مدیریت دستگاه‌ها
+    path('management/devices/', views.admin_devices_view, name='admin_devices'),
+    path('management/devices/<uuid:device_id>/delete/', views.admin_delete_device, name='admin_delete_device'),
+    path('management/devices/<uuid:device_id>/toggle/', views.admin_toggle_device_status, name='admin_toggle_device_status'),
+    path('management/devices/<uuid:device_id>/control/', views.admin_control_device, name='admin_control_device'),
 ]

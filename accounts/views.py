@@ -16,7 +16,14 @@ from .forms import (
     ForgotPasswordForm, ResetPasswordForm, ESP32DeviceForm
 )
 from .utils import send_verification_email, send_reset_email, send_device_status_email
+from django.db.models import Q, Count
+from django.core.paginator import Paginator
+from django.contrib.auth import get_user_model
 
+from django.contrib.auth import get_user_model
+from django.db.models import Q, Count
+from django.core.paginator import Paginator
+from datetime import datetime
 
 def home(request):
     """صفحه اصلی"""
@@ -24,25 +31,33 @@ def home(request):
 
 
 def signup_view(request):
-    """ثبت نام کاربر جدید"""
+    """ثبت نام کاربر جدید - همیشه نیاز به تایید ایمیل"""
     if request.user.is_authenticated:
         return redirect('dashboard')
     
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password1'])
-            user.save()
-            
-            # ارسال کد تایید
-            if send_verification_email(user):
-                request.session['verification_user_id'] = user.id
-                messages.success(request, 'کد تایید به ایمیل شما ارسال شد')
-                return redirect('verify_email')
-            else:
-                user.delete()
-                messages.error(request, 'خطا در ارسال ایمیل. لطفاً دوباره تلاش کنید')
+            try:
+                user = form.save(commit=False)
+                user.set_password(form.cleaned_data['password1'])
+                user.is_verified = False  # همیشه باید تایید شود
+                user.save()
+                
+                # ارسال کد تایید
+                if send_verification_email(user):
+                    request.session['verification_user_id'] = user.id
+                    messages.success(request, 'کد تایید به ایمیل شما ارسال شد')
+                    return redirect('verify_email')
+                else:
+                    user.delete()
+                    messages.error(request, 'خطا در ارسال ایمیل. لطفاً دوباره تلاش کنید')
+            except Exception as e:
+                messages.error(request, f'خطا در ثبت نام: {str(e)}')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{error}')
     else:
         form = SignupForm()
     
@@ -76,42 +91,71 @@ def verify_email_view(request):
     else:
         form = VerificationForm()
     
-    return render(request, 'accounts/verify_email.html', {
+    # اضافه کردن دکمه ارسال مجدد
+    context = {
         'form': form,
-        'user': user
-    })
+        'user': user,
+        'can_resend': True
+    }
+    
+    return render(request, 'accounts/verify_email.html', context)
+
+
+def resend_verification_view(request):
+    """ارسال مجدد کد تایید"""
+    user_id = request.session.get('verification_user_id')
+    if not user_id:
+        messages.error(request, 'جلسه منقضی شده')
+        return redirect('signup')
+    
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    if send_verification_email(user):
+        messages.success(request, 'کد تایید جدید ارسال شد')
+    else:
+        messages.error(request, 'خطا در ارسال ایمیل')
+    
+    return redirect('verify_email')
 
 
 def login_view(request):
     """ورود کاربر"""
     if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('admin_dashboard')
         return redirect('dashboard')
     
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
             
-            # بررسی اگر ادمین است
-            if username == settings.ADMIN_USERNAME:
-                user = authenticate(request, username=username, password=form.cleaned_data['password'])
-                if user and user.is_superuser:
+            # Try to authenticate user
+            user = authenticate(request, username=username, password=password)
+            
+            if user:
+                # اگر سوپریوزر است، بدون تایید ایمیل وارد شود
+                if user.is_superuser:
                     login(request, user)
+                    messages.success(request, f'خوش آمدید ادمین!')
                     return redirect('admin_dashboard')
-            
-            # ورود کاربر عادی
-            user = form.get_user()
-            if user and user.is_verified:
-                login(request, user)
-                messages.success(request, f'خوش آمدید {user.username}!')
-                return redirect('dashboard')
-            elif user and not user.is_verified:
-                request.session['verification_user_id'] = user.id
-                send_verification_email(user)
-                messages.warning(request, 'حساب شما تایید نشده. کد تایید جدید ارسال شد')
-                return redirect('verify_email')
+                # اگر کاربر عادی است و تایید شده
+                elif user.is_verified:
+                    login(request, user)
+                    messages.success(request, f'خوش آمدید {user.username}!')
+                    return redirect('dashboard')
+                # اگر کاربر عادی است اما تایید نشده
+                else:
+                    request.session['verification_user_id'] = user.id
+                    messages.warning(request, 'حساب شما تایید نشده. کد تایید جدید ارسال می‌شود')
+                    if send_verification_email(user):
+                        messages.info(request, 'کد تایید به ایمیل شما ارسال شد')
+                    return redirect('verify_email')
+            else:
+                messages.error(request, 'نام کاربری یا رمز عبور اشتباه است')
         else:
-            messages.error(request, 'نام کاربری یا رمز عبور اشتباه است')
+            messages.error(request, 'لطفاً اطلاعات را به درستی وارد کنید')
     else:
         form = LoginForm()
     
@@ -317,6 +361,7 @@ def admin_approve_device(request, device_id):
     
     if request.method == 'POST':
         device.status = 'approved'
+        device.approved_at = timezone.now()
         device.generate_api_key()
         device.save()
         
@@ -350,3 +395,240 @@ def admin_reject_device(request, device_id):
             messages.error(request, 'لطفاً دلیل رد را وارد کنید')
     
     return render(request, 'admin/reject_device.html', {'device': device})
+
+
+@user_passes_test(is_admin)
+def admin_dashboard_view(request):
+    """داشبورد ادمین کامل"""
+    # آمار کلی
+    total_users = CustomUser.objects.count()
+    verified_users = CustomUser.objects.filter(is_verified=True).count()
+    banned_users = CustomUser.objects.filter(is_active=False).count()
+
+    total_devices = ESP32Device.objects.count()
+    pending_devices = ESP32Device.objects.filter(status='pending')
+    approved_devices = ESP32Device.objects.filter(status='approved')
+    rejected_devices = ESP32Device.objects.filter(status='rejected')
+    online_devices = ESP32Device.objects.filter(status='approved', is_online=True)
+
+    # درخواست‌های اخیر
+    recent_requests = ESP32Device.objects.filter(
+        status='pending'
+    ).select_related('user').order_by('-created_at')[:10]
+
+    # کاربران اخیر
+    recent_users = CustomUser.objects.filter(
+        is_superuser=False
+    ).order_by('-date_joined')[:10]
+
+    # دستگاه‌های آنلاین
+    online_devices_list = ESP32Device.objects.filter(
+        status='approved',
+        is_online=True
+    ).select_related('user').order_by('-last_seen')[:10]
+
+    context = {
+        'total_users': total_users,
+        'verified_users': verified_users,
+        'banned_users': banned_users,
+        'total_devices': total_devices,
+        'pending_count': pending_devices.count(),
+        'approved_count': approved_devices.count(),
+        'rejected_count': rejected_devices.count(),
+        'online_count': online_devices.count(),
+        'recent_requests': recent_requests,
+        'recent_users': recent_users,
+        'online_devices': online_devices_list,
+    }
+
+    return render(request, 'admin/dashboard.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_users_view(request):
+    """مدیریت کاربران"""
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'all')
+
+    users = CustomUser.objects.filter(is_superuser=False).annotate(
+        device_count=Count('devices')
+    ).order_by('-date_joined')
+
+    # فیلتر جستجو
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    # فیلتر وضعیت
+    if status_filter == 'verified':
+        users = users.filter(is_verified=True, is_active=True)
+    elif status_filter == 'unverified':
+        users = users.filter(is_verified=False)
+    elif status_filter == 'banned':
+        users = users.filter(is_active=False)
+
+    # صفحه‌بندی
+    paginator = Paginator(users, 20)
+    page_number = request.GET.get('page')
+    users_page = paginator.get_page(page_number)
+
+    context = {
+        'users': users_page,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'total_users': users.count(),
+    }
+
+    return render(request, 'admin/users.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_devices_view(request):
+    """مدیریت دستگاه‌ها"""
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'all')
+
+    devices = ESP32Device.objects.select_related('user').order_by('-created_at')
+
+    # فیلتر جستجو
+    if search_query:
+        devices = devices.filter(
+            Q(name__icontains=search_query) |
+            Q(user__username__icontains=search_query)
+        )
+
+    # فیلتر وضعیت
+    if status_filter != 'all':
+        devices = devices.filter(status=status_filter)
+
+    # صفحه‌بندی
+    paginator = Paginator(devices, 20)
+    page_number = request.GET.get('page')
+    devices_page = paginator.get_page(page_number)
+
+    context = {
+        'devices': devices_page,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'total_devices': devices.count(),
+    }
+
+    return render(request, 'admin/devices.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_user_detail(request, user_id):
+    """جزئیات کاربر"""
+    user = get_object_or_404(CustomUser, id=user_id, is_superuser=False)
+    devices = user.devices.all().order_by('-created_at')
+
+    context = {
+        'user': user,
+        'devices': devices,
+    }
+
+    return render(request, 'admin/user_detail.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_ban_user(request, user_id):
+    """مسدود کردن کاربر"""
+    if request.method == 'POST':
+        user = get_object_or_404(CustomUser, id=user_id, is_superuser=False)
+        user.is_active = False
+        user.save()
+
+        # غیرفعال کردن همه دستگاه‌های کاربر
+        user.devices.update(status='suspended')
+
+        messages.success(request, f'کاربر {user.username} مسدود شد')
+        return redirect('admin_users')
+
+    return redirect('admin_users')
+
+
+@user_passes_test(is_admin)
+def admin_unban_user(request, user_id):
+    """رفع مسدودیت کاربر"""
+    if request.method == 'POST':
+        user = get_object_or_404(CustomUser, id=user_id, is_superuser=False)
+        user.is_active = True
+        user.save()
+
+        # فعال کردن دستگاه‌های تایید شده
+        user.devices.filter(status='suspended').update(status='approved')
+
+        messages.success(request, f'مسدودیت کاربر {user.username} رفع شد')
+        return redirect('admin_users')
+
+    return redirect('admin_users')
+
+
+@user_passes_test(is_admin)
+def admin_delete_device(request, device_id):
+    """حذف دستگاه توسط ادمین"""
+    if request.method == 'POST':
+        device = get_object_or_404(ESP32Device, id=device_id)
+        device_name = device.name
+        user_name = device.user.username
+        device.delete()
+
+        messages.success(request, f'دستگاه "{device_name}" کاربر {user_name} حذف شد')
+        return redirect('admin_devices')
+
+    return redirect('admin_devices')
+
+
+@user_passes_test(is_admin)
+def admin_control_device(request, device_id):
+    """کنترل دستگاه توسط ادمین"""
+    device = get_object_or_404(ESP32Device, id=device_id, status='approved')
+
+    context = {
+        'device': device,
+        'admin_control': True,
+    }
+
+    return render(request, 'admin/control_device.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_toggle_device_status(request, device_id):
+    """تغییر وضعیت دستگاه"""
+    if request.method == 'POST':
+        device = get_object_or_404(ESP32Device, id=device_id)
+
+        if device.status == 'approved':
+            device.status = 'suspended'
+            action = 'معلق'
+        elif device.status == 'suspended':
+            device.status = 'approved'
+            action = 'فعال'
+
+        device.save()
+        messages.success(request, f'دستگاه "{device.name}" {action} شد')
+
+        return redirect('admin_devices')
+
+    return redirect('admin_devices')
+
+# Add these missing view functions at the end of your views.py
+
+@user_passes_test(is_admin)
+def resend_verification_view(request):
+    """ارسال مجدد کد تایید"""
+    user_id = request.session.get('verification_user_id')
+    if not user_id:
+        messages.error(request, 'جلسه منقضی شده')
+        return redirect('signup')
+
+    user = get_object_or_404(CustomUser, id=user_id)
+
+    if send_verification_email(user):
+        messages.success(request, 'کد تایید جدید ارسال شد')
+    else:
+        messages.error(request, 'خطا در ارسال ایمیل')
+
+    return redirect('verify_email')

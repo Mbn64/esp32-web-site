@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}تایید ایمیل - mbn13.ir{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="fas fa-envelope-open fa-4x text-primary mb-3"></i>
+                    <h3>تایید ایمیل</h3>
+                    <p class="text-muted">
+                        کد تایید 6 رقمی به ایمیل 
+                        <strong>{{ user.email }}</strong> 
+                        ارسال شد
+                    </p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.code.id_for_label }}" class="form-label">
+                            کد تایید 6 رقمی
+                        </label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                            <div class="text-danger small mt-2">
+                                {{ form.code.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg btn-custom">
+                            <i class="fas fa-check me-2"></i>تایید و ورود
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-4">
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>
+                        کد تایید تا 5 دقیقه معتبر است
+                    </small>
+                    <br>
+                    <a href="{% url 'resend_verification' %}" class="btn btn-outline-primary btn-sm mt-2">
+                        <i class="fas fa-redo me-1"></i>ارسال مجدد کد
+                    </a>
+                </div>
+
+                <div class="mt-3">
+                    <a href="{% url 'signup' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>بازگشت به ثبت نام
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+
+{% block title %}پنل مدیریت - mbn13.ir{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-card {
+    transition: transform 0.2s;
+    border: none;
+    border-radius: 15px;
+}
+.stats-card:hover {
+    transform: translateY(-3px);
+}
+.admin-nav .nav-link {
+    color: #495057;
+    border-radius: 10px;
+    margin: 0 5px;
+}
+.admin-nav .nav-link.active {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+}
+.device-online {
+    color: #28a745;
+}
+.device-offline {
+    color: #6c757d;
+}
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Admin Header -->
+    <div class="col-12 mb-4">
+        <div class="glass-effect p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>
+                        <i class="fas fa-user-shield me-2"></i>
+                        پنل مدیریت سیستم
+                    </h3>
+                    <p class="mb-0">مدیریت کاربران، دستگاه‌ها و سیستم</p>
+                </div>
+                <div class="text-end">
+                    <p class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        ادمین: {{ user.username }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-calendar me-2"></i>
+                        {{ now|date:"Y/m/d H:i" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="col-12 mb-4">
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="card stats-card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">کل کاربران</h6>
+                                <h3 class="mb-0">{{ total_users }}</h3>
+                                <small>{{ verified_users }} تایید شده</small>
+                            </div>
+                            <i class="fas fa-users fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card stats-card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">کل دستگاه‌ها</h6>
+                                <h3 class="mb-0">{{ total_devices }}</h3>
+                                <small>{{ approved_count }} فعال</small>
+                            </div>
+                            <i class="fas fa-microchip fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card stats-card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">درخواست‌های جدید</h6>
+                                <h3 class="mb-0">{{ pending_count }}</h3>
+                                <small>نیاز به بررسی</small>
+                            </div>
+                            <i class="fas fa-exclamation-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="card stats-card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0">دستگاه‌های آنلاین</h6>
+                                <h3 class="mb-0">{{ online_count }}</h3>
+                                <small>از {{ approved_count }} فعال</small>
+                            </div>
+                            <i class="fas fa-wifi fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title mb-3">
+                    <i class="fas fa-bolt me-2"></i>دسترسی سریع
+                </h6>
+                <div class="row g-2">
+                    <div class="col-auto">
+                        <a href="{% url 'admin_users' %}" class="btn btn-primary">
+                            <i class="fas fa-users me-2"></i>مدیریت کاربران
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{% url 'admin_devices' %}" class="btn btn-success">
+                            <i class="fas fa-microchip me-2"></i>مدیریت دستگاه‌ها
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a href="/admin/" class="btn btn-info" target="_blank">
+                            <i class="fas fa-database me-2"></i>ادمین Django
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="col-12">
+        <ul class="nav nav-tabs admin-nav" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                    <i class="fas fa-clock me-2"></i>درخواست‌های جدید ({{ pending_count }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="online-tab" data-bs-toggle="tab" data-bs-target="#online" type="button" role="tab">
+                    <i class="fas fa-wifi me-2"></i>دستگاه‌های آنلاین ({{ online_count }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                    <i class="fas fa-user-plus me-2"></i>کاربران جدید
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content bg-white" id="adminTabsContent">
+            <!-- Pending Requests Tab -->
+            <div class="tab-pane fade show active" id="pending" role="tabpanel">
+                <div class="p-4">
+                    {% if recent_requests %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>دستگاه</th>
+                                        <th>کاربر</th>
+                                        <th>تاریخ درخواست</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in recent_requests %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-microchip me-2"></i>
+                                            {{ request.name }}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar bg-primary me-2">
+                                                    {{ request.user.username|first|upper }}
+                                                </div>
+                                                <div>
+                                                    <div>{{ request.user.username }}</div>
+                                                    <small class="text-muted">{{ request.user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {{ request.created_at|date:"Y/m/d H:i" }}
+                                            <br><small class="text-muted">{{ request.created_at|timesince }} پیش</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'admin_approve_device' request.id %}" 
+                                                   class="btn btn-success" title="تایید">
+                                                    <i class="fas fa-check"></i>
+                                                </a>
+                                                <a href="{% url 'admin_reject_device' request.id %}" 
+                                                   class="btn btn-danger" title="رد">
+                                                    <i class="fas fa-times"></i>
+                                                </a>
+                                                <a href="{% url 'admin_user_detail' request.user.id %}" 
+                                                   class="btn btn-info" title="جزئیات کاربر">
+                                                    <i class="fas fa-user"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">هیچ درخواست جدیدی نیست</h5>
+                            <p class="text-muted">درخواست‌های جدید اینجا نمایش داده خواهند شد</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Online Devices Tab -->
+            <div class="tab-pane fade" id="online" role="tabpanel">
+                <div class="p-4">
+                    {% if online_devices %}
+                        <div class="row g-3">
+                            {% for device in online_devices %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">
+                                                <i class="fas fa-microchip me-2"></i>
+                                                {{ device.name }}
+                                            </h6>
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-circle me-1"></i>آنلاین
+                                            </span>
+                                        </div>
+                                        
+                                        <p class="text-muted mb-2">
+                                            <i class="fas fa-user me-1"></i>
+                                            {{ device.user.username }}
+                                        </p>
+                                        
+                                        <p class="text-muted mb-3">
+                                            <i class="fas fa-clock me-1"></i>
+                                            <small>{{ device.last_seen|timesince }} پیش</small>
+                                        </p>
+                                        
+                                        <div class="btn-group w-100" role="group">
+                                            <a href="{% url 'admin_control_device' device.id %}" 
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fas fa-cogs me-1"></i>کنترل
+                                            </a>
+                                            <a href="{% url 'admin_user_detail' device.user.id %}" 
+                                               class="btn btn-info btn-sm">
+                                                <i class="fas fa-user me-1"></i>کاربر
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-wifi fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">هیچ دستگاه آنلاینی نیست</h5>
+                            <p class="text-muted">دستگاه‌های متصل اینجا نمایش داده خواهند شد</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Users Tab -->
+            <div class="tab-pane fade" id="users" role="tabpanel">
+                <div class="p-4">
+                    {% if recent_users %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>کاربر</th>
+                                        <th>تاریخ عضویت</th>
+                                        <th>وضعیت</th>
+                                        <th>دستگاه‌ها</th>
+                                        <th>عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_users %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar bg-info me-2">
+                                                    {{ user.username|first|upper }}
+                                                </div>
+                                                <div>
+                                                    <div>{{ user.username }}</div>
+                                                    <small class="text-muted">{{ user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {{ user.date_joined|date:"Y/m/d H:i" }}
+                                            <br><small class="text-muted">{{ user.date_joined|timesince }} پیش</small>
+                                        </td>
+                                        <td>
+                                            {% if not user.is_active %}
+                                                <span class="badge bg-danger">مسدود</span>
+                                            {% elif user.is_verified %}
+                                                <span class="badge bg-success">تایید شده</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">تایید نشده</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ user.devices.count }} دستگاه</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'admin_user_detail' user.id %}" 
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">هیچ کاربر جدیدی نیست</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

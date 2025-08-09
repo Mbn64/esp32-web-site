@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}مدیریت دستگاه‌ها - ادمین{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>
+                <i class="fas fa-microchip me-2"></i>
+                مدیریت دستگاه‌ها
+            </h4>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>بازگشت به داشبورد
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="جستجو بر اساس نام دستگاه یا کاربر..." 
+                               value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>همه دستگاه‌ها</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>در انتظار تایید</option>
+                            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>تایید شده</option>
+                            <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>رد شده</option>
+                            <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>معلق شده</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>جستجو
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Devices List -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    دستگاه‌ها ({{ total_devices }} دستگاه)
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if devices %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>دستگاه</th>
+                                    <th>کاربر</th>
+                                    <th>وضعیت</th>
+                                    <th>تاریخ ایجاد</th>
+                                    <th>آخرین اتصال</th>
+                                    <th>IP Address</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for device in devices %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-microchip fa-2x me-3 text-primary"></i>
+                                            <div>
+                                                <div class="fw-bold">{{ device.name }}</div>
+                                                {% if device.api_key %}
+                                                    <small class="text-muted">{{ device.api_key|truncatechars:20 }}...</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar bg-info me-2">
+                                                {{ device.user.username|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div>{{ device.user.username }}</div>
+                                                <small class="text-muted">{{ device.user.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if device.status == 'pending' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i>در انتظار
+                                            </span>
+                                        {% elif device.status == 'approved' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>تایید شده
+                                            </span>
+                                            {% if device.is_online %}
+                                                <br><small class="text-success">
+                                                    <i class="fas fa-circle me-1"></i>آنلاین
+                                                </small>
+                                            {% else %}
+                                                <br><small class="text-muted">
+                                                    <i class="fas fa-circle me-1"></i>آفلاین
+                                                </small>
+                                            {% endif %}
+                                        {% elif device.status == 'rejected' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>رد شده
+                                            </span>
+                                        {% elif device.status == 'suspended' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause me-1"></i>معلق
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ device.created_at|date:"Y/m/d H:i" }}
+                                        <br><small class="text-muted">{{ device.created_at|timesince }} پیش</small>
+                                    </td>
+                                    <td>
+                                        {% if device.last_seen %}
+                                            {{ device.last_seen|date:"Y/m/d H:i" }}
+                                            <br><small class="text-muted">{{ device.last_seen|timesince }} پیش</small>
+                                        {% else %}
+                                            <span class="text-muted">هرگز</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if device.ip_address %}
+                                            <code>{{ device.ip_address }}</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <!-- View User -->
+                                            <a href="{% url 'admin_user_detail' device.user.id %}" 
+                                               class="btn btn-info" title="مشاهده کاربر">
+                                                <i class="fas fa-user"></i>
+                                            </a>
+                                            
+                                            <!-- Device Actions based on status -->
+                                            {% if device.status == 'pending' %}
+                                                <a href="{% url 'admin_approve_device' device.id %}" 
+                                                   class="btn btn-success" title="تایید">
+                                                    <i class="fas fa-check"></i>
+                                                </a>
+                                                <a href="{% url 'admin_reject_device' device.id %}" 
+                                                   class="btn btn-danger" title="رد">
+                                                    <i class="fas fa-times"></i>
+                                                </a>
+                                            {% elif device.status == 'approved' %}
+                                                <a href="{% url 'admin_control_device' device.id %}" 
+                                                   class="btn btn-primary" title="کنترل دستگاه">
+                                                    <i class="fas fa-cogs"></i>
+                                                </a>
+                                                <form method="post" action="{% url 'admin_toggle_device_status' device.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-warning" title="معلق کردن"
+                                                            onclick="return confirm('آیا مطمئن هستید؟')">
+                                                        <i class="fas fa-pause"></i>
+                                                    </button>
+                                                </form>
+                                            {% elif device.status == 'suspended' %}
+                                                <form method="post" action="{% url 'admin_toggle_device_status' device.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-success" title="فعال کردن">
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            
+                                            <!-- Delete Device -->
+                                            <form method="post" action="{% url 'admin_delete_device' device.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger" title="حذف"
+                                                        onclick="return confirm('آیا مطمئن هستید که می‌خواهید این دستگاه را حذف کنید؟')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if devices.has_other_pages %}
+                    <div class="card-footer">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                {% if devices.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ devices.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}">قبلی</a>
+                                    </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        صفحه {{ devices.number }} از {{ devices.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if devices.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ devices.next_page_number }}&search={{ search_query }}&status={{ status_filter }}">بعدی</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-microchip fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">دستگاهی یافت نشد</h5>
+                        <p class="text-muted">فیلترها را تغییر دهید یا جستجوی جدیدی انجام دهید</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 0.8rem;
+}
+</style>
+{% endblock %}

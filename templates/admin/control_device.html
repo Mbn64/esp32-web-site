@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block title %}کنترل {{ device.name }} - ادمین{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>
+                <i class="fas fa-cogs me-2"></i>
+                کنترل دستگاه: {{ device.name }}
+            </h4>
+            <div>
+                <a href="{% url 'admin_devices' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left me-2"></i>بازگشت به دستگاه‌ها
+                </a>
+                <a href="{% url 'admin_user_detail' device.user.id %}" class="btn btn-outline-info">
+                    <i class="fas fa-user me-2"></i>مشاهده کاربر
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Info Card -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-microchip me-2"></i>{{ device.name }}
+                </h5>
+                
+                <div class="mb-3">
+                    <!-- Online Status -->
+                    <span id="device-status" class="badge bg-secondary mb-2">
+                        <i class="fas fa-circle me-1"></i>در حال بررسی...
+                    </span>
+                </div>
+
+                <div class="device-info">
+                    <p class="mb-1">
+                        <strong>مالک:</strong> {{ device.user.username }}
+                    </p>
+                    
+                    <p class="mb-1">
+                        <strong>API Key:</strong>
+                        <code class="small">{{ device.api_key }}</code>
+                    </p>
+                    
+                    <p class="mb-1">
+                        <strong>تاریخ ایجاد:</strong>
+                        {{ device.created_at|date:"Y/m/d H:i" }}
+                    </p>
+                    
+                    <p class="mb-1" id="last-seen-info">
+                        <strong>آخرین اتصال:</strong>
+                        <span id="last-seen">در حال بارگذاری...</span>
+                    </p>
+                    
+                    <p class="mb-0" id="ip-address-info">
+                        <strong>IP Address:</strong>
+                        <span id="ip-address">-</span>
+                    </p>
+                </div>
+
+                <!-- Admin Warning -->
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <small>شما به عنوان ادمین در حال کنترل این دستگاه هستید</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>پنل کنترل ادمین
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- LED Control -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="fas fa-lightbulb fa-3x mb-3 text-muted" id="led-icon"></i>
+                                <h6>کنترل LED</h6>
+                                <div class="btn-group w-100" role="group">
+                                    <button type="button" class="btn btn-success" onclick="controlLED('on')" id="led-on-btn">
+                                        <i class="fas fa-power-off me-2"></i>روشن
+                                    </button>
+                                    <button type="button" class="btn btn-danger" onclick="controlLED('off')" id="led-off-btn">
+                                        <i class="fas fa-power-off me-2"></i>خاموش
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="fas fa-info-circle fa-3x text-info mb-3"></i>
+                                <h6>وضعیت دستگاه</h6>
+                                <div id="device-info">
+                                    <p class="mb-1">وضعیت: <span id="connection-status">در حال بررسی...</span></p>
+                                    <p class="mb-0">آخرین بروزرسانی: <span id="last-update">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Actions -->
+                <div class="mt-4">
+                    <h6>عملیات ادمین</h6>
+                    <div class="row g-2">
+                        <div class="col-auto">
+                            <form method="post" action="{% url 'admin_toggle_device_status' device.id %}" class="d-inline">
+                                {% csrf_token %}
+                                {% if device.status == 'approved' %}
+                                    <button type="submit" class="btn btn-warning btn-sm"
+                                            onclick="return confirm('آیا مطمئن هستید؟')">
+                                        <i class="fas fa-pause me-1"></i>معلق کردن دستگاه
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-play me-1"></i>فعال کردن دستگاه
+                                    </button>
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="col-auto">
+                            <form method="post" action="{% url 'admin_delete_device' device.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('آیا مطمئن هستید که می‌خواهید این دستگاه را حذف کنید؟')">
+                                    <i class="fas fa-trash me-1"></i>حذف دستگاه
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Messages -->
+                <div class="mt-3">
+                    <div id="control-status" class="alert alert-info" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="status-text">در حال ارسال دستور...</span>
+                    </div>
+                </div>
+
+                <!-- Connection Status -->
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            آخرین بروزرسانی: <span id="page-last-update">همین الان</span>
+                        </small>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="auto-refresh" checked>
+                            <label class="form-check-label" for="auto-refresh">
+                                بروزرسانی خودکار
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Device API endpoints
+const deviceId = "{{ device.id }}";
+const baseURL = '/api/device/' + deviceId;
+
+// Control LED
+async function controlLED(action) {
+    const statusDiv = document.getElementById('control-status');
+    const statusText = document.getElementById('status-text');
+    const ledIcon = document.getElementById('led-icon');
+    
+    // Disable buttons
+    document.getElementById('led-on-btn').disabled = true;
+    document.getElementById('led-off-btn').disabled = true;
+    
+    // Show loading
+    statusDiv.className = 'alert alert-info';
+    statusDiv.style.display = 'block';
+    statusText.textContent = 'در حال ارسال دستور...';
+    
+    try {
+        const response = await fetch(`${baseURL}/control/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({
+                action: 'led',
+                value: action
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            statusDiv.className = 'alert alert-success';
+            statusText.textContent = `LED با موفقیت ${action === 'on' ? 'روشن' : 'خاموش'} شد (کنترل ادمین)`;
+            
+            // Update icon
+            if (action === 'on') {
+                ledIcon.className = 'fas fa-lightbulb fa-3x text-warning';
+            } else {
+                ledIcon.className = 'fas fa-lightbulb fa-3x text-muted';
+            }
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        } else {
+            throw new Error(result.message || 'خطا در ارسال دستور');
+        }
+        
+    } catch (error) {
+        statusDiv.className = 'alert alert-danger';
+        statusText.textContent = 'خطا: ' + error.message;
+    } finally {
+        // Re-enable buttons
+        document.getElementById('led-on-btn').disabled = false;
+        document.getElementById('led-off-btn').disabled = false;
+    }
+}
+
+// Update device status
+async function updateDeviceStatus() {
+    try {
+        const response = await fetch(`${baseURL}/status/`);
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update status badge
+            const statusBadge = document.getElementById('device-status');
+            if (data.is_online) {
+                statusBadge.className = 'badge bg-success mb-2';
+                statusBadge.innerHTML = '<i class="fas fa-circle me-1"></i>آنلاین';
+            } else {
+                statusBadge.className = 'badge bg-secondary mb-2';
+                statusBadge.innerHTML = '<i class="fas fa-circle me-1"></i>آفلاین';
+            }
+            
+            // Update last seen
+            const lastSeen = document.getElementById('last-seen');
+            if (data.last_seen) {
+                const date = new Date(data.last_seen);
+                lastSeen.textContent = date.toLocaleString('fa-IR');
+            } else {
+                lastSeen.textContent = 'هرگز';
+            }
+            
+            // Update IP address
+            const ipAddress = document.getElementById('ip-address');
+            ipAddress.textContent = data.ip_address || '-';
+            
+            // Update connection status
+            const connectionStatus = document.getElementById('connection-status');
+            connectionStatus.textContent = data.is_online ? 'متصل' : 'قطع';
+            connectionStatus.className = data.is_online ? 'text-success' : 'text-danger';
+            
+            document.getElementById('page-last-update').textContent = 'همین الان';
+        }
+    } catch (error) {
+        console.error('خطا در دریافت وضعیت دستگاه:', error);
+    }
+}
+
+// Auto refresh
+let refreshInterval;
+
+function startAutoRefresh() {
+    refreshInterval = setInterval(() => {
+        if (document.getElementById('auto-refresh').checked) {
+            updateDeviceStatus();
+        }
+    }, 5000); // هر 5 ثانیه
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial data load
+    updateDeviceStatus();
+    
+    // Start auto refresh
+    startAutoRefresh();
+    
+    // Handle auto-refresh toggle
+    document.getElementById('auto-refresh').addEventListener('change', function() {
+        if (this.checked) {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    });
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', stopAutoRefresh);
+</script>
+
+<!-- Add CSRF Token for AJAX -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+{% endblock %}

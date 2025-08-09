@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+
+{% block title %}جزئیات {{ user.username }} - ادمین{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>
+                <i class="fas fa-user me-2"></i>
+                جزئیات کاربر: {{ user.username }}
+            </h4>
+            <div>
+                <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left me-2"></i>بازگشت به کاربران
+                </a>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-home me-2"></i>داشبورد
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Info Card -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="user-avatar-large bg-primary mx-auto mb-3">
+                    {{ user.username|first|upper }}
+                </div>
+                <h5 class="card-title">{{ user.username }}</h5>
+                <p class="text-muted">{{ user.email }}</p>
+                
+                <!-- Status Badges -->
+                <div class="mb-3">
+                    {% if not user.is_active %}
+                        <span class="badge bg-danger mb-2">
+                            <i class="fas fa-ban me-1"></i>مسدود شده
+                        </span>
+                    {% elif user.is_verified %}
+                        <span class="badge bg-success mb-2">
+                            <i class="fas fa-check me-1"></i>تایید شده
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning mb-2">
+                            <i class="fas fa-clock me-1"></i>تایید نشده
+                        </span>
+                    {% endif %}
+                    
+                    {% if user.is_superuser %}
+                        <br><span class="badge bg-info">
+                            <i class="fas fa-crown me-1"></i>ادمین
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2">
+                    {% if user.is_active %}
+                        <form method="post" action="{% url 'admin_ban_user' user.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger w-100"
+                                    onclick="return confirm('آیا مطمئن هستید که می‌خواهید این کاربر را مسدود کنید؟')">
+                                <i class="fas fa-ban me-2"></i>مسدود کردن کاربر
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{% url 'admin_unban_user' user.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-unlock me-2"></i>رفع مسدودیت
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- User Stats -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title">آمار کاربر</h6>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary mb-0">{{ devices.count }}</h4>
+                            <small class="text-muted">دستگاه</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success mb-0">{{ devices|length }}</h4>
+                        <small class="text-muted">کل درخواست</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details -->
+    <div class="col-lg-8">
+        <!-- Account Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>اطلاعات حساب
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <strong>نام کاربری:</strong> {{ user.username }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>ایمیل:</strong> {{ user.email }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>تاریخ عضویت:</strong> {{ user.date_joined|date:"Y/m/d H:i" }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>مدت عضویت:</strong> {{ user.date_joined|timesince }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <strong>آخرین ورود:</strong> 
+                            {% if user.last_login %}
+                                {{ user.last_login|date:"Y/m/d H:i" }}
+                            {% else %}
+                                <span class="text-muted">هرگز</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-2">
+                            <strong>IP آخرین ورود:</strong> 
+                            {% if user.last_login_ip %}
+                                <code>{{ user.last_login_ip }}</code>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-2">
+                            <strong>وضعیت ایمیل:</strong>
+                            {% if user.is_verified %}
+                                <span class="text-success">تایید شده</span>
+                            {% else %}
+                                <span class="text-warning">تایید نشده</span>
+                            {% endif %}
+                        </p>
+                        <p class="mb-0">
+                            <strong>وضعیت حساب:</strong>
+                            {% if user.is_active %}
+                                <span class="text-success">فعال</span>
+                            {% else %}
+                                <span class="text-danger">مسدود</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Devices -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-microchip me-2"></i>دستگاه‌های کاربر ({{ devices.count }})
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if devices %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>نام دستگاه</th>
+                                    <th>وضعیت</th>
+                                    <th>تاریخ ایجاد</th>
+                                    <th>آخرین اتصال</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for device in devices %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-microchip me-2"></i>
+                                        {{ device.name }}
+                                    </td>
+                                    <td>
+                                        {% if device.status == 'pending' %}
+                                            <span class="badge bg-warning">در انتظار</span>
+                                        {% elif device.status == 'approved' %}
+                                            <span class="badge bg-success">تایید شده</span>
+                                            {% if device.is_online %}
+                                                <br><small class="text-success">
+                                                    <i class="fas fa-circle me-1"></i>آنلاین
+                                                </small>
+                                            {% else %}
+                                                <br><small class="text-muted">
+                                                    <i class="fas fa-circle me-1"></i>آفلاین
+                                                </small>
+                                            {% endif %}
+                                        {% elif device.status == 'rejected' %}
+                                            <span class="badge bg-danger">رد شده</span>
+                                        {% elif device.status == 'suspended' %}
+                                            <span class="badge bg-secondary">معلق</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ device.created_at|date:"Y/m/d H:i" }}</td>
+                                    <td>
+                                        {% if device.last_seen %}
+                                            {{ device.last_seen|timesince }} پیش
+                                        {% else %}
+                                            <span class="text-muted">هرگز</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            {% if device.status == 'pending' %}
+                                                <a href="{% url 'admin_approve_device' device.id %}" 
+                                                   class="btn btn-success" title="تایید">
+                                                    <i class="fas fa-check"></i>
+                                                </a>
+                                                <a href="{% url 'admin_reject_device' device.id %}" 
+                                                   class="btn btn-danger" title="رد">
+                                                    <i class="fas fa-times"></i>
+                                                </a>
+                                            {% elif device.status == 'approved' %}
+                                                <a href="{% url 'admin_control_device' device.id %}" 
+                                                   class="btn btn-primary" title="کنترل">
+                                                    <i class="fas fa-cogs"></i>
+                                                </a>
+                                            {% endif %}
+                                            
+                                            <form method="post" action="{% url 'admin_delete_device' device.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger" title="حذف"
+                                                        onclick="return confirm('آیا مطمئن هستید؟')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-microchip fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">این کاربر هیچ دستگاهی ندارد</h6>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 2rem;
+}
+</style>
+{% endblock %}

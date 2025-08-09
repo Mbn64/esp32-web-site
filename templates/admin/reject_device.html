@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}رد درخواست دستگاه - ادمین{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-times-circle me-2"></i>
+                    رد درخواست دستگاه
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6>اطلاعات درخواست:</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>نام دستگاه:</strong> {{ device.name }}</li>
+                        <li><strong>کاربر:</strong> {{ device.user.username }}</li>
+                        <li><strong>ایمیل:</strong> {{ device.user.email }}</li>
+                        <li><strong>تاریخ درخواست:</strong> {{ device.created_at|date:"Y/m/d H:i" }}</li>
+                    </ul>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">
+                            <i class="fas fa-comment me-2"></i>دلیل رد درخواست:
+                        </label>
+                        <textarea name="reason" id="reason" class="form-control" rows="4" 
+                                  placeholder="دلیل رد درخواست را بنویسید..." required></textarea>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        این دلیل برای کاربر از طریق ایمیل ارسال خواهد شد.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>بازگشت
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-2"></i>رد نهایی
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
