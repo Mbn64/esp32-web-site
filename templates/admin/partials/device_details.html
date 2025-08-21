@@ -1,0 +1,190 @@
+<!-- templates/admin/partials/device_details.html -->
+<div class="device-details-content">
+    <div class="device-info-grid">
+        <div class="info-section">
+            <h6 class="section-title">
+                <i class="fas fa-info-circle me-2"></i>
+                اطلاعات پایه
+            </h6>
+            <div class="info-items">
+                <div class="info-item">
+                    <span class="info-label">نام دستگاه:</span>
+                    <span class="info-value">{{ device.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">شناسه:</span>
+                    <span class="info-value font-monospace">{{ device.id }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">وضعیت:</span>
+                    <span class="info-value">
+                        {% if device.status == 'pending' %}
+                            <span class="badge bg-warning">در انتظار</span>
+                        {% elif device.status == 'approved' %}
+                            <span class="badge bg-success">تایید شده</span>
+                        {% elif device.status == 'rejected' %}
+                            <span class="badge bg-danger">رد شده</span>
+                        {% elif device.status == 'suspended' %}
+                            <span class="badge bg-secondary">معلق</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">تاریخ درخواست:</span>
+                    <span class="info-value">{{ device.created_at|date:"Y/m/d H:i" }}</span>
+                </div>
+                {% if device.approved_at %}
+                <div class="info-item">
+                    <span class="info-label">تاریخ تایید:</span>
+                    <span class="info-value">{{ device.approved_at|date:"Y/m/d H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h6 class="section-title">
+                <i class="fas fa-user me-2"></i>
+                اطلاعات کاربر
+            </h6>
+            <div class="info-items">
+                <div class="info-item">
+                    <span class="info-label">نام کاربری:</span>
+                    <span class="info-value">{{ device.user.username }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">ایمیل:</span>
+                    <span class="info-value">{{ device.user.email }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">تاریخ عضویت:</span>
+                    <span class="info-value">{{ device.user.date_joined|date:"Y/m/d" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">تعداد دستگاه:</span>
+                    <span class="info-value">{{ device.user.devices.count }} دستگاه</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h6 class="section-title">
+                <i class="fas fa-wifi me-2"></i>
+                وضعیت اتصال
+            </h6>
+            <div class="info-items">
+                <div class="info-item">
+                    <span class="info-label">وضعیت آنلاین:</span>
+                    <span class="info-value">
+                        {% if device.is_online %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-circle me-1"></i>آنلاین
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-circle me-1"></i>آفلاین
+                            </span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% if device.last_seen %}
+                <div class="info-item">
+                    <span class="info-label">آخرین اتصال:</span>
+                    <span class="info-value">{{ device.last_seen|date:"Y/m/d H:i" }}</span>
+                </div>
+                {% endif %}
+                {% if device.ip_address %}
+                <div class="info-item">
+                    <span class="info-label">آدرس IP:</span>
+                    <span class="info-value font-monospace">{{ device.ip_address }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if device.api_key and device.status == 'approved' %}
+        <div class="info-section">
+            <h6 class="section-title">
+                <i class="fas fa-key me-2"></i>
+                اطلاعات API
+            </h6>
+            <div class="info-items">
+                <div class="info-item">
+                    <span class="info-label">API Key:</span>
+                    <span class="info-value">
+                        <code class="api-key">{{ device.api_key|slice:":8" }}...</code>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" 
+                                onclick="copyToClipboard('{{ device.api_key }}')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if device.rejection_reason %}
+        <div class="info-section">
+            <h6 class="section-title text-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                دلیل رد
+            </h6>
+            <div class="alert alert-danger">
+                {{ device.rejection_reason }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if device_stats %}
+    <div class="device-stats mt-4">
+        <h6 class="section-title">
+            <i class="fas fa-chart-line me-2"></i>
+            آمار دستگاه
+        </h6>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="fas fa-plug"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ device_stats.total_connections }}</div>
+                    <div class="stat-label">اتصالات</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ device_stats.uptime_percentage }}%</div>
+                    <div class="stat-label">زمان فعالیت</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ device_stats.data_usage }}</div>
+                    <div class="stat-label">مصرف داده</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        if (window.App && window.App.showToast) {
+            window.App.showToast('API Key کپی شد', 'success');
+        } else {
+            alert('API Key کپی شد');
+        }
+    });
+}
+</script>
+

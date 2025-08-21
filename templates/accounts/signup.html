@@ -1,0 +1,238 @@
+<!-- templates/accounts/signup.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ثبت نام - mbn13.ir{% endblock %}
+{% block description %}ایجاد حساب کاربری جدید در سیستم مدیریت ESP32{% endblock %}
+
+{% block body_class %}auth-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-background">
+        <div class="auth-shapes"></div>
+        <div class="auth-particles"></div>
+    </div>
+    
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <!-- Left Side - Visual -->
+            <div class="col-lg-6 d-none d-lg-flex">
+                <div class="auth-visual signup-visual">
+                    <div class="visual-content">
+                        <div class="visual-header">
+                            <h2>به خانواده mbn13 بپیوندید</h2>
+                            <p>شروع سفر شما در دنیای IoT</p>
+                        </div>
+                        
+                        <div class="signup-benefits">
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <div class="benefit-content">
+                                    <h4>شروع سریع</h4>
+                                    <p>در کمتر از 5 دقیقه اولین دستگاه خود را متصل کنید</p>
+                                </div>
+                            </div>
+                            
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-gift"></i>
+                                </div>
+                                <div class="benefit-content">
+                                    <h4>رایگان برای همیشه</h4>
+                                    <p>تا 5 دستگاه کاملاً رایگان، بدون محدودیت زمانی</p>
+                                </div>
+                            </div>
+                            
+                            <div class="benefit-item">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-headset"></i>
+                                </div>
+                                <div class="benefit-content">
+                                    <h4>پشتیبانی کامل</h4>
+                                    <p>تیم پشتیبانی ما ۲۴ ساعته در خدمت شما</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="testimonial">
+                            <div class="testimonial-content">
+                                <i class="fas fa-quote-left"></i>
+                                <p>"سیستم فوق‌العاده‌ای است! مدیریت دستگاه‌هایم خیلی آسان شده."</p>
+                                <div class="testimonial-author">
+                                    <strong>علی محمدی</strong>
+                                    <span>توسعه‌دهنده IoT</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Form -->
+            <div class="col-lg-6 d-flex align-items-center justify-content-center">
+                <div class="auth-form-container">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <i class="fas fa-microchip"></i>
+                            <span>mbn13.ir</span>
+                        </div>
+                        <h1 class="auth-title">ایجاد حساب جدید</h1>
+                        <p class="auth-subtitle">اطلاعات خود را وارد کنید</p>
+                    </div>
+
+                    <div class="auth-form">
+                        <form method="post" class="needs-validation" novalidate id="signup-form">
+                            {% csrf_token %}
+                            
+                            <!-- Username Field -->
+                            <div class="form-group">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user me-2"></i>
+                                    نام کاربری
+                                </label>
+                                <div class="input-wrapper">
+                                    {{ form.username }}
+                                    <div class="input-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="input-status" id="username-status"></div>
+                                </div>
+                                <div class="form-help">
+                                    نام کاربری باید حداقل 3 کاراکتر باشد و نمی‌تواند با عدد شروع شود
+                                </div>
+                                <div class="invalid-feedback" id="username-feedback">
+                                    {% if form.username.errors %}{{ form.username.errors.0 }}{% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="form-group">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    ایمیل
+                                </label>
+                                <div class="input-wrapper">
+                                    {{ form.email }}
+                                    <div class="input-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                </div>
+                                <div class="form-help">
+                                    کد تایید به این ایمیل ارسال خواهد شد
+                                </div>
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.email.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="form-group">
+                                <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>
+                                    رمز عبور
+                                </label>
+                                <div class="input-wrapper">
+                                    {{ form.password1 }}
+                                    <div class="input-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                    <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password1.id_for_label }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="password-strength" id="password-strength">
+                                    <div class="strength-bar">
+                                        <div class="strength-fill"></div>
+                                    </div>
+                                    <div class="strength-text">قدرت رمز عبور</div>
+                                </div>
+                                {% if form.password1.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.password1.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Confirm Password Field -->
+                            <div class="form-group">
+                                <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>
+                                    تکرار رمز عبور
+                                </label>
+                                <div class="input-wrapper">
+                                    {{ form.password2 }}
+                                    <div class="input-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                    <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password2.id_for_label }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.password2.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.password2.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Terms & Conditions -->
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        <a href="#" onclick="showComingSoon('شرایط و قوانین')">شرایط و قوانین</a> و 
+                                        <a href="#" onclick="showComingSoon('حریم خصوصی')">حریم خصوصی</a> را مطالعه کرده و می‌پذیرم
+                                    </label>
+                                    <div class="invalid-feedback">
+                                        باید شرایط و قوانین را بپذیرید
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-custom btn-primary btn-lg w-100 submit-btn">
+                                <span class="btn-text">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    ایجاد حساب
+                                </span>
+                                <span class="btn-loading">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    در حال ایجاد حساب...
+                                </span>
+                            </button>
+                        </form>
+
+                        <!-- Login Link -->
+                        <div class="auth-footer">
+                            <p>
+                                قبلاً حساب دارید؟
+                                <a href="{% url 'login' %}" class="auth-link">وارد شوید</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/auth.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    new AuthPage();
+    setupSignupValidation();
+});
+</script>
+{% endblock %}
+

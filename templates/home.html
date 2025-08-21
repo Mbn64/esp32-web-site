@@ -1,109 +1,329 @@
+<!-- templates/home.html -->
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}mbn13.ir - صفحه اصلی{% endblock %}
+{% block title %}سیستم مدیریت ESP32 - mbn13.ir{% endblock %}
+{% block description %}سیستم پیشرفته مدیریت و کنترل دستگاه‌های ESP32 - راه‌حل هوشمند IoT برای خانه و کسب‌وکار{% endblock %}
+
+{% block body_class %}home-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <!-- Hero Section -->
-        <div class="glass-effect p-5 text-center text-white mb-5">
-            <h1 class="display-4 fw-bold mb-4">
-                <i class="fas fa-microchip me-3"></i>
-                سیستم مدیریت ESP32
-            </h1>
-            <p class="lead mb-4">
-                پلتفرم هوشمند کنترل و مدیریت دستگاه‌های ESP32 از راه دور
-            </p>
-            {% if not user.is_authenticated %}
-                <div class="d-grid gap-2 d-md-block">
-                    <a href="{% url 'signup' %}" class="btn btn-primary btn-custom btn-lg me-3">
-                        <i class="fas fa-user-plus me-2"></i>ثبت نام رایگان
-                    </a>
-                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-custom btn-lg">
-                        <i class="fas fa-sign-in-alt me-2"></i>ورود به حساب
-                    </a>
-                </div>
-            {% else %}
-                <div class="d-grid gap-2 d-md-block">
-                    <a href="{% url 'dashboard' %}" class="btn btn-success btn-custom btn-lg">
-                        <i class="fas fa-tachometer-alt me-2"></i>رفتن به داشبورد
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Features Section -->
-        <div class="row g-4 mb-5">
-            <div class="col-md-4">
-                <div class="card h-100 text-center">
-                    <div class="card-body p-4">
-                        <i class="fas fa-wifi fa-3x text-primary mb-3"></i>
-                        <h5 class="card-title">اتصال بی‌سیم</h5>
-                        <p class="card-text">
-                            دستگاه‌های ESP32 خود را به صورت بی‌سیم و امن به سیستم متصل کنید
-                        </p>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-background">
+        <div class="hero-particles"></div>
+        <div class="hero-waves"></div>
+    </div>
+    
+    <div class="container-custom">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i class="fas fa-star"></i>
+                        سیستم پیشرفته IoT
+                    </div>
+                    
+                    <h1 class="hero-title">
+                        مدیریت هوشمند
+                        <span class="text-gradient">دستگاه‌های ESP32</span>
+                    </h1>
+                    
+                    <p class="hero-description">
+                        با سیستم پیشرفته mbn13.ir، دستگاه‌های ESP32 خود را به‌راحتی مدیریت، کنترل و نظارت کنید. 
+                        راه‌حل کاملی برای پروژه‌های IoT شما.
+                    </p>
+                    
+                    <div class="hero-features">
+                        <div class="feature-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>امنیت بالا</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-clock"></i>
+                            <span>نظارت ۲۴/۷</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>کنترل از راه دور</span>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-actions">
+                        {% if not user.is_authenticated %}
+                            <a href="{% url 'signup' %}" class="btn btn-custom btn-primary btn-lg">
+                                <i class="fas fa-rocket me-2"></i>
+                                شروع رایگان
+                            </a>
+                            <a href="{% url 'login' %}" class="btn btn-custom btn-outline btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                ورود به سیستم
+                            </a>
+                        {% else %}
+                            <a href="{% url 'dashboard' %}" class="btn btn-custom btn-primary btn-lg">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                ورود به داشبورد
+                            </a>
+                            <a href="{% url 'add_device' %}" class="btn btn-custom btn-outline btn-lg">
+                                <i class="fas fa-plus me-2"></i>
+                                افزودن دستگاه
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="card h-100 text-center">
-                    <div class="card-body p-4">
-                        <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
-                        <h5 class="card-title">کنترل از راه دور</h5>
-                        <p class="card-text">
-                            دستگاه‌هایتان را از هر نقطه‌ای از جهان کنترل کنید
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card h-100 text-center">
-                    <div class="card-body p-4">
-                        <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
-                        <h5 class="card-title">امنیت بالا</h5>
-                        <p class="card-text">
-                            سیستم API Key منحصر به فرد و رمزگذاری قوی
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- About Section -->
-        <div class="card">
-            <div class="card-body p-5">
-                <h3 class="text-center mb-4">
-                    <i class="fas fa-info-circle me-2"></i>درباره mbn13.ir
-                </h3>
-                <div class="row">
-                    <div class="col-lg-8 mx-auto">
-                        <p class="lead text-center mb-4">
-                            پلتفرم mbn13.ir برای ساده‌سازی فرآیند مدیریت و کنترل دستگاه‌های ESP32 طراحی شده است.
-                        </p>
-                        <ul class="list-unstyled">
-                            <li class="mb-3">
-                                <i class="fas fa-check text-success me-3"></i>
-                                <strong>ثبت نام آسان:</strong> تنها با چند کلیک حساب کاربری ایجاد کنید
-                            </li>
-                            <li class="mb-3">
-                                <i class="fas fa-check text-success me-3"></i>
-                                <strong>تایید ایمیل:</strong> امنیت حساب با تایید ایمیل تضمین می‌شود
-                            </li>
-                            <li class="mb-3">
-                                <i class="fas fa-check text-success me-3"></i>
-                                <strong>مدیریت دستگاه:</strong> درخواست، تایید و کنترل ESP32ها
-                            </li>
-                            <li class="mb-3">
-                                <i class="fas fa-check text-success me-3"></i>
-                                <strong>پنل ادمین:</strong> مدیریت کاربران و درخواست‌ها
-                            </li>
-                        </ul>
+            <div class="col-lg-6">
+                <div class="hero-visual">
+                    <div class="device-showcase">
+                        <div class="device-card">
+                            <div class="device-header">
+                                <div class="device-status online"></div>
+                                <span class="device-name">ESP32 خانگی</span>
+                            </div>
+                            <div class="device-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">دما</span>
+                                    <span class="stat-value">24°C</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">رطوبت</span>
+                                    <span class="stat-value">65%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="device-card">
+                            <div class="device-header">
+                                <div class="device-status online"></div>
+                                <span class="device-name">سنسور باغچه</span>
+                            </div>
+                            <div class="device-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">رطوبت خاک</span>
+                                    <span class="stat-value">78%</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">نور</span>
+                                    <span class="stat-value">750 lux</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="connection-lines"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section section">
+    <div class="container-custom">
+        <div class="text-center mb-5">
+            <h2 class="section-title">
+                چرا <span class="text-gradient">mbn13.ir</span> انتخاب کنید؟
+            </h2>
+            <p class="section-description">
+                ویژگی‌های منحصر به فرد که تجربه مدیریت IoT شما را متحول می‌کند
+            </p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="feature-title">راه‌اندازی سریع</h3>
+                    <p class="feature-description">
+                        تنها در چند دقیقه دستگاه‌های ESP32 خود را به سیستم متصل کنید و شروع به استفاده کنید.
+                    </p>
+                    <ul class="feature-list">
+                        <li>تنظیم خودکار</li>
+                        <li>راهنمای گام به گام</li>
+                        <li>پشتیبانی ۲۴ ساعته</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">تحلیل هوشمند</h3>
+                    <p class="feature-description">
+                        داده‌های دستگاه‌های شما را به صورت زنده نظارت کنید و گزارش‌های تحلیلی دریافت کنید.
+                    </p>
+                    <ul class="feature-list">
+                        <li>نمودارهای پیشرفته</li>
+                        <li>هشدارهای هوشمند</li>
+                        <li>تاریخچه کامل داده‌ها</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">امنیت بالا</h3>
+                    <p class="feature-description">
+                        با رمزنگاری پیشرفته و احراز هویت دو مرحله‌ای، داده‌های شما کاملاً محفوظ است.
+                    </p>
+                    <ul class="feature-list">
+                        <li>SSL/TLS Encryption</li>
+                        <li>احراز هویت دو مرحله‌ای</li>
+                        <li>کلیدهای API منحصر به فرد</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="feature-title">دسترسی موبایل</h3>
+                    <p class="feature-description">
+                        از هر جا و در هر زمان به دستگاه‌های خود دسترسی داشته باشید و آن‌ها را کنترل کنید.
+                    </p>
+                    <ul class="feature-list">
+                        <li>طراحی ریسپانسیو</li>
+                        <li>PWA Support</li>
+                        <li>اعلانات Push</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3 class="feature-title">API قدرتمند</h3>
+                    <p class="feature-description">
+                        با API مستند و کامل، سیستم را با برنامه‌ها و سرویس‌های دیگر ادغام کنید.
+                    </p>
+                    <ul class="feature-list">
+                        <li>RESTful API</li>
+                        <li>مستندات کامل</li>
+                        <li>SDK آماده</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="feature-title">پشتیبانی عالی</h3>
+                    <p class="feature-description">
+                        تیم متخصص ما آماده کمک به شما در تمام مراحل استفاده از سیستم است.
+                    </p>
+                    <ul class="feature-list">
+                        <li>پشتیبانی ۲۴/۷</li>
+                        <li>چت آنلاین</li>
+                        <li>راهنمای جامع</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="stats-section">
+    <div class="container-custom">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number" data-target="1250">0</div>
+                    <div class="stat-label">کاربر فعال</div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="stat-number" data-target="3450">0</div>
+                    <div class="stat-label">دستگاه متصل</div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-number" data-target="98">0</div>
+                    <div class="stat-label">درصد آپتایم</div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number" data-target="24">0</div>
+                    <div class="stat-label">ساعت پشتیبانی</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container-custom">
+        <div class="cta-card">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="cta-content">
+                        <h2 class="cta-title">
+                            آماده شروع هستید؟
+                        </h2>
+                        <p class="cta-description">
+                            همین حالا حساب کاربری رایگان ایجاد کنید و تجربه مدیریت هوشمند ESP32 را آغاز کنید.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="cta-actions">
+                        {% if not user.is_authenticated %}
+                            <a href="{% url 'signup' %}" class="btn btn-custom btn-primary btn-lg">
+                                <i class="fas fa-rocket me-2"></i>
+                                ثبت نام رایگان
+                            </a>
+                        {% else %}
+                            <a href="{% url 'add_device' %}" class="btn btn-custom btn-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>
+                                افزودن دستگاه اول
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/home.js' %}"></script>
+{% endblock %}
+

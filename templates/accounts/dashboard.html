@@ -1,193 +1,392 @@
+<!-- templates/accounts/dashboard.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}داشبورد - mbn13.ir{% endblock %}
+{% block description %}مدیریت دستگاه‌های ESP32 شما{% endblock %}
+
+{% block body_class %}dashboard-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/dashboard.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- Stats Cards -->
-    <div class="col-12 mb-4">
-        <div class="row g-3">
-            <div class="col-md-3">
-                <div class="card bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="card-title mb-0">کل دستگاه‌ها</h6>
-                                <h3 class="mb-0">{{ devices.count }}</h3>
-                            </div>
-                            <i class="fas fa-microchip fa-2x opacity-75"></i>
-                        </div>
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="welcome-section">
+                        <h1 class="welcome-title">
+                            <i class="fas fa-user-circle me-2"></i>
+                            سلام {{ user.first_name|default:user.username }}! 👋
+                        </h1>
+                        <p class="welcome-subtitle">
+                            مدیریت و کنترل دستگاه‌های ESP32 خود را از اینجا انجام دهید
+                        </p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card bg-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="card-title mb-0">تایید شده</h6>
-                                <h3 class="mb-0">{{ approved_count }}</h3>
-                            </div>
-                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card bg-warning text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="card-title mb-0">در انتظار</h6>
-                                <h3 class="mb-0">{{ pending_count }}</h3>
-                            </div>
-                            <i class="fas fa-clock fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3">
-                <div class="card bg-info text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="card-title mb-0">آنلاین</h6>
-                                <h3 class="mb-0">0</h3>
-                            </div>
-                            <i class="fas fa-wifi fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Welcome Message -->
-    <div class="col-12 mb-4">
-        <div class="glass-effect p-4 text-white">
-            <h4>
-                <i class="fas fa-user-circle me-2"></i>
-                خوش آمدید {{ user.username }}!
-            </h4>
-            <p class="mb-0">
-                از این پنل می‌تونید دستگاه‌های ESP32 خود را مدیریت کنید
-            </p>
-        </div>
-    </div>
-
-    <!-- Add Device Button -->
-    <div class="col-12 mb-4">
-        <div class="text-center">
-            <a href="{% url 'add_device' %}" class="btn btn-success btn-lg btn-custom">
-                <i class="fas fa-plus me-2"></i>افزودن دستگاه جدید
-            </a>
-        </div>
-    </div>
-
-    <!-- Devices List -->
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>دستگاه‌های شما
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if devices %}
-                    <div class="row g-3">
-                        {% for device in devices %}
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card device-card h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                            <h6 class="card-title mb-0">
-                                                <i class="fas fa-microchip me-2"></i>
-                                                {{ device.name }}
-                                            </h6>
-                                            
-                                            <!-- Status Badge -->
-                                            {% if device.status == 'pending' %}
-                                                <span class="badge bg-warning">
-                                                    <i class="fas fa-clock me-1"></i>در انتظار
-                                                </span>
-                                            {% elif device.status == 'approved' %}
-                                                <span class="badge bg-success">
-                                                    <i class="fas fa-check me-1"></i>تایید شده
-                                                </span>
-                                            {% elif device.status == 'rejected' %}
-                                                <span class="badge bg-danger">
-                                                    <i class="fas fa-times me-1"></i>رد شده
-                                                </span>
-                                            {% endif %}
-                                        </div>
-
-                                        <!-- Device Info -->
-                                        <div class="mb-3">
-                                            {% if device.status == 'approved' %}
-                                                <p class="text-success mb-1">
-                                                    <i class="fas fa-key me-1"></i>
-                                                    <small>API Key: {{ device.api_key|truncatechars:20 }}...</small>
-                                                </p>
-                                                
-                                                <!-- Online Status -->
-                                                {% if device.is_online %}
-                                                    <p class="text-success mb-1">
-                                                        <i class="fas fa-circle me-1"></i>
-                                                        <small>آنلاین</small>
-                                                    </p>
-                                                {% else %}
-                                                    <p class="text-muted mb-1">
-                                                        <i class="fas fa-circle me-1"></i>
-                                                        <small>آفلاین</small>
-                                                    </p>
-                                                {% endif %}
-                                            {% elif device.status == 'rejected' %}
-                                                <div class="alert alert-danger py-2">
-                                                    <small>
-                                                        <strong>دلیل رد:</strong> {{ device.rejection_reason }}
-                                                    </small>
-                                                </div>
-                                            {% endif %}
-                                            
-                                            <p class="text-muted mb-0">
-                                                <i class="fas fa-calendar me-1"></i>
-                                                <small>{{ device.created_at|date:"Y/m/d - H:i" }}</small>
-                                            </p>
-                                        </div>
-
-                                        <!-- Actions -->
-                                        <div class="btn-group w-100" role="group">
-                                            {% if device.status == 'approved' %}
-                                                <a href="{% url 'control_device' device.id %}" class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-cogs me-1"></i>کنترل
-                                                </a>
-                                            {% endif %}
-                                            
-                                            <button type="button" class="btn btn-danger btn-sm" 
-                                                    onclick="deleteDevice({{ device.id }}, '{{ device.name }}')">
-                                                <i class="fas fa-trash me-1"></i>حذف
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-microchip fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">هنوز دستگاهی اضافه نکرده‌اید</h5>
-                        <p class="text-muted mb-3">برای شروع، اولین دستگاه ESP32 خود را اضافه کنید</p>
-                        <a href="{% url 'add_device' %}" class="btn btn-primary btn-custom">
-                            <i class="fas fa-plus me-2"></i>افزودن دستگاه
+                <div class="col-md-4 text-end">
+                    <div class="quick-actions">
+                        <a href="{% url 'add_device' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            افزودن دستگاه جدید
                         </a>
                     </div>
-                {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-section">
+        <div class="container-fluid">
+            <div class="row g-4">
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <div class="stat-card total-devices">
+                        <div class="stat-icon">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ devices.count }}</div>
+                            <div class="stat-label">کل دستگاه‌ها</div>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <div class="stat-card approved-devices">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ approved_count }}</div>
+                            <div class="stat-label">تایید شده</div>
+                        </div>
+                        <div class="stat-trend success">
+                            <span class="trend-icon">
+                                <i class="fas fa-arrow-up"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <div class="stat-card pending-devices">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ pending_count }}</div>
+                            <div class="stat-label">در انتظار</div>
+                        </div>
+                        <div class="stat-trend warning">
+                            <span class="trend-icon">
+                                <i class="fas fa-hourglass-half"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6">
+                    <div class="stat-card rejected-devices">
+                        <div class="stat-icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ rejected_count }}</div>
+                            <div class="stat-label">رد شده</div>
+                        </div>
+                        <div class="stat-trend danger">
+                            <span class="trend-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Devices Section -->
+    <div class="devices-section">
+        <div class="container-fluid">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-list me-2"></i>
+                    دستگاه‌های شما
+                </h2>
+                <div class="section-actions">
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-status="all">
+                            همه ({{ devices.count }})
+                        </button>
+                        <button class="filter-btn" data-status="approved">
+                            تایید شده ({{ approved_count }})
+                        </button>
+                        <button class="filter-btn" data-status="pending">
+                            در انتظار ({{ pending_count }})
+                        </button>
+                        <button class="filter-btn" data-status="rejected">
+                            رد شده ({{ rejected_count }})
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {% if devices %}
+                <div class="devices-grid">
+                    {% for device in devices %}
+                        <div class="device-card" data-status="{{ device.status }}">
+                            <div class="device-header">
+                                <div class="device-info">
+                                    <h3 class="device-name">
+                                        <i class="fas fa-microchip me-2"></i>
+                                        {{ device.name }}
+                                    </h3>
+                                    <div class="device-meta">
+                                        <span class="device-id">ID: {{ device.id|slice:":8" }}...</span>
+                                        <span class="device-date">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ device.created_at|date:"Y/m/d" }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="device-status">
+                                    {% if device.status == 'approved' %}
+                                        <span class="status-badge success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            تایید شده
+                                        </span>
+                                    {% elif device.status == 'pending' %}
+                                        <span class="status-badge warning">
+                                            <i class="fas fa-clock me-1"></i>
+                                            در انتظار تایید
+                                        </span>
+                                    {% elif device.status == 'rejected' %}
+                                        <span class="status-badge danger">
+                                            <i class="fas fa-times-circle me-1"></i>
+                                            رد شده
+                                        </span>
+                                    {% elif device.status == 'suspended' %}
+                                        <span class="status-badge secondary">
+                                            <i class="fas fa-pause-circle me-1"></i>
+                                            معلق
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="device-body">
+                                {% if device.status == 'approved' %}
+                                    <div class="device-details approved-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">
+                                                <i class="fas fa-key me-1"></i>
+                                                API Key:
+                                            </span>
+                                            <div class="api-key-wrapper">
+                                                <code class="api-key" id="api-key-{{ device.id }}">
+                                                    {{ device.api_key|slice:":20" }}...
+                                                </code>
+                                                <button class="btn btn-sm btn-outline-secondary copy-btn" 
+                                                        onclick="copyApiKey('{{ device.api_key }}', '{{ device.id }}')">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="detail-item">
+                                            <span class="detail-label">
+                                                <i class="fas fa-signal me-1"></i>
+                                                وضعیت اتصال:
+                                            </span>
+                                            <span class="connection-status {{ device.is_online|yesno:'online,offline' }}">
+                                                {% if device.is_online %}
+                                                    <i class="fas fa-circle me-1"></i>
+                                                    آنلاین
+                                                {% else %}
+                                                    <i class="fas fa-circle me-1"></i>
+                                                    آفلاین
+                                                    {% if device.last_seen %}
+                                                        ({{ device.last_seen|timesince }} پیش)
+                                                    {% endif %}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+
+                                        {% if device.approved_at %}
+                                            <div class="detail-item">
+                                                <span class="detail-label">
+                                                    <i class="fas fa-check me-1"></i>
+                                                    تاریخ تایید:
+                                                </span>
+                                                <span class="detail-value">
+                                                    {{ device.approved_at|date:"Y/m/d H:i" }}
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% elif device.status == 'rejected' %}
+                                    <div class="device-details rejected-details">
+                                        <div class="rejection-reason">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>دلیل رد:</strong>
+                                            <p class="reason-text">{{ device.rejection_reason }}</p>
+                                        </div>
+                                    </div>
+                                {% elif device.status == 'pending' %}
+                                    <div class="device-details pending-details">
+                                        <div class="pending-message">
+                                            <i class="fas fa-hourglass-half me-2"></i>
+                                            درخواست شما در صف بررسی قرار دارد. لطفاً صبر کنید...
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="device-actions">
+                                {% if device.status == 'approved' %}
+                                    <a href="{% url 'control_device' device.id %}" 
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-gamepad me-1"></i>
+                                        کنترل دستگاه
+                                    </a>
+                                {% endif %}
+                                
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                            type="button" 
+                                            data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="#" 
+                                               onclick="showDeviceDetails('{{ device.id }}')">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                جزئیات
+                                            </a>
+                                        </li>
+                                        {% if device.status == 'approved' %}
+                                            <li>
+                                                <a class="dropdown-item" href="#" 
+                                                   onclick="downloadConfig('{{ device.id }}')">
+                                                    <i class="fas fa-download me-2"></i>
+                                                    دانلود کانفیگ
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" 
+                                               href="{% url 'delete_device' device.id %}"
+                                               onclick="return confirmDelete('{{ device.name }}')">
+                                                <i class="fas fa-trash me-2"></i>
+                                                حذف
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <h3 class="empty-title">هنوز دستگاهی ندارید</h3>
+                    <p class="empty-description">
+                        برای شروع، اولین دستگاه ESP32 خود را اضافه کنید
+                    </p>
+                    <a href="{% url 'add_device' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        افزودن دستگاه جدید
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Device Details Modal -->
+<div class="modal fade" id="deviceDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>
+                    جزئیات دستگاه
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="deviceDetailsContent">
+                <!-- Content loaded via AJAX -->
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/dashboard.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    new DashboardPage();
+});
+
+function copyApiKey(apiKey, deviceId) {
+    navigator.clipboard.writeText(apiKey).then(() => {
+        const btn = event.target.closest('.copy-btn');
+        const icon = btn.querySelector('i');
+        const originalClass = icon.className;
+        
+        icon.className = 'fas fa-check';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-secondary');
+        
+        if (window.App && window.App.showToast) {
+            window.App.showToast('API Key کپی شد', 'success');
+        }
+        
+        setTimeout(() => {
+            icon.className = originalClass;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-secondary');
+        }, 2000);
+    }).catch(() => {
+        if (window.App && window.App.showToast) {
+            window.App.showToast('خطا در کپی کردن', 'error');
+        }
+    });
+}
+
+function confirmDelete(deviceName) {
+    return confirm(`آیا از حذف دستگاه "${deviceName}" اطمینان دارید؟`);
+}
+
+function showDeviceDetails(deviceId) {
+    // Implementation in dashboard.js
+    if (window.dashboardInstance) {
+        window.dashboardInstance.showDeviceDetails(deviceId);
+    }
+}
+
+function downloadConfig(deviceId) {
+    // Implementation in dashboard.js
+    if (window.dashboardInstance) {
+        window.dashboardInstance.downloadConfig(deviceId);
+    }
+}
+</script>
+{% endblock %}
+

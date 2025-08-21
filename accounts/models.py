@@ -22,6 +22,13 @@ class CustomUser(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     last_login_ip = models.GenericIPAddressField(blank=True, null=True)
     
+    class Meta:
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['is_verified']),
+            models.Index(fields=['username', 'email']),
+        ]
+    
     def generate_verification_code(self):
         """تولید کد تایید 6 رقمی"""
         code = ''.join(secrets.choice('0123456789') for _ in range(6))
@@ -65,6 +72,7 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+
 class ESP32Device(models.Model):
     STATUS_CHOICES = [
         ('pending', 'در حال بررسی'),
@@ -94,6 +102,13 @@ class ESP32Device(models.Model):
         ordering = ['-created_at']
         verbose_name = 'دستگاه'
         verbose_name_plural = 'دستگاه‌ها'
+        indexes = [
+            models.Index(fields=['api_key']),
+            models.Index(fields=['status']),
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['is_online']),
+            models.Index(fields=['-created_at']),
+        ]
     
     def generate_api_key(self):
         """تولید API Key جدید"""

@@ -1,0 +1,135 @@
+<!-- templates/components/footer.html -->
+<footer class="main-footer">
+    <div class="footer-content">
+        <div class="container-custom">
+            <div class="row g-4">
+                <!-- Brand Section -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">
+                        <div class="footer-logo">
+                            <i class="fas fa-microchip"></i>
+                            <span>mbn13.ir</span>
+                        </div>
+                        <p class="footer-description">
+                            سیستم پیشرفته مدیریت و کنترل دستگاه‌های ESP32. 
+                            راه‌حل هوشمند IoT برای خانه و کسب‌وکار شما.
+                        </p>
+                        <div class="footer-social">
+                            <a href="#" class="social-link" title="تلگرام">
+                                <i class="fab fa-telegram"></i>
+                            </a>
+                            <a href="#" class="social-link" title="اینستاگرام">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="social-link" title="یوتیوب">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                            <a href="#" class="social-link" title="گیت‌هاب">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6">
+                    <div class="footer-section">
+                        <h5 class="footer-title">دسترسی سریع</h5>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'home' %}">صفحه اصلی</a></li>
+                            {% if user.is_authenticated %}
+                                <li><a href="{% url 'dashboard' %}">داشبورد</a></li>
+                                <li><a href="{% url 'add_device' %}">افزودن دستگاه</a></li>
+                            {% else %}
+                                <li><a href="{% url 'signup' %}">ثبت نام</a></li>
+                                <li><a href="{% url 'login' %}">ورود</a></li>
+                            {% endif %}
+                            <li><a href="#" onclick="showComingSoon('مستندات')">مستندات</a></li>
+                            <li><a href="#" onclick="showComingSoon('پشتیبانی')">پشتیبانی</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="col-lg-2 col-md-6">
+                    <div class="footer-section">
+                        <h5 class="footer-title">خدمات</h5>
+                        <ul class="footer-links">
+                            <li><a href="#" onclick="showComingSoon('مدیریت دستگاه')">مدیریت دستگاه</a></li>
+                            <li><a href="#" onclick="showComingSoon('نظارت زنده')">نظارت زنده</a></li>
+                            <li><a href="#" onclick="showComingSoon('تحلیل داده')">تحلیل داده</a></li>
+                            <li><a href="#" onclick="showComingSoon('گزارش‌گیری')">گزارش‌گیری</a></li>
+                            <li><a href="#" onclick="showComingSoon('API')">API</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Support -->
+                <div class="col-lg-2 col-md-6">
+                    <div class="footer-section">
+                        <h5 class="footer-title">پشتیبانی</h5>
+                        <ul class="footer-links">
+                            <li><a href="#" onclick="showComingSoon('راهنما')">راهنمای کاربری</a></li>
+                            <li><a href="#" onclick="showComingSoon('سوالات متداول')">سوالات متداول</a></li>
+                            <li><a href="#" onclick="showComingSoon('تماس با ما')">تماس با ما</a></li>
+                            <li><a href="#" onclick="showComingSoon('گزارش مشکل')">گزارش مشکل</a></li>
+                            <li><a href="#" onclick="showComingSoon('درخواست ویژگی')">درخواست ویژگی</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="col-lg-2 col-md-6">
+                    <div class="footer-section">
+                        <h5 class="footer-title">تماس</h5>
+                        <div class="footer-contact">
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>support@mbn13.ir</span>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>021-88888888</span>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-clock"></i>
+                                <span>پشتیبانی ۲۴/۷</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+        <div class="container-custom">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="footer-copyright">
+                        <p>&copy; {{ current_year }} mbn13.ir - تمامی حقوق محفوظ است</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="footer-legal">
+                        <a href="#" onclick="showComingSoon('شرایط استفاده')">شرایط استفاده</a>
+                        <a href="#" onclick="showComingSoon('حریم خصوصی')">حریم خصوصی</a>
+                        <a href="#" onclick="showComingSoon('قوانین')">قوانین</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+function showComingSoon(feature) {
+    if (window.App && window.App.showToast) {
+        window.App.showToast(`${feature} به زودی در دسترس خواهد بود`, 'info');
+    } else {
+        alert(`${feature} به زودی در دسترس خواهد بود`);
+    }
+}
+</script>
+

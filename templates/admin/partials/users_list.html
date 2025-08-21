@@ -1,0 +1,35 @@
+<!-- templates/admin/partials/users_list.html -->
+{% if recent_users %}
+    {% for user in recent_users %}
+        <div class="user-item">
+            <div class="user-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="user-info">
+                <div class="user-name">{{ user.username }}</div>
+                <div class="user-joined">{{ user.date_joined|timesince }} پیش</div>
+            </div>
+            <div class="user-status">
+                {% if user.is_verified %}
+                    <span class="status-badge success">تایید شده</span>
+                {% else %}
+                    <span class="status-badge warning">در انتظار</span>
+                {% endif %}
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-sm btn-outline-primary" 
+                        onclick="showUserDetails('{{ user.id }}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state small">
+        <div class="empty-icon">
+            <i class="fas fa-user-check"></i>
+        </div>
+        <p class="empty-title">کاربر جدیدی ثبت نشده است</p>
+    </div>
+{% endif %}
+

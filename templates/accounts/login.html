@@ -1,0 +1,205 @@
+<!-- templates/accounts/login.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ورود به سیستم - mbn13.ir{% endblock %}
+{% block description %}ورود به حساب کاربری خود در سیستم مدیریت ESP32{% endblock %}
+
+{% block body_class %}auth-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-background">
+        <div class="auth-shapes"></div>
+        <div class="auth-particles"></div>
+    </div>
+    
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <!-- Left Side - Form -->
+            <div class="col-lg-6 d-flex align-items-center justify-content-center">
+                <div class="auth-form-container">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <i class="fas fa-microchip"></i>
+                            <span>mbn13.ir</span>
+                        </div>
+                        <h1 class="auth-title">خوش آمدید</h1>
+                        <p class="auth-subtitle">وارد حساب کاربری خود شوید</p>
+                    </div>
+
+                    <div class="auth-form">
+                        <form method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            <!-- Username Field -->
+                            <div class="form-group">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user me-2"></i>
+                                    نام کاربری یا ایمیل
+                                </label>
+                                <div class="input-wrapper">
+                                    {{ form.username }}
+                                    <div class="input-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.username.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="form-group">
+                                <label for="{{ form.password.id_for_label }}" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>
+                                    رمز عبور
+                                </label>
+                                <div class="input-wrapper">
+                                    {{ form.password }}
+                                    <div class="input-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                    <button type="button" class="password-toggle" onclick="togglePassword('{{ form.password.id_for_label }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback">
+                                        {{ form.password.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Remember Me & Forgot Password -->
+                            <div class="form-options">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="remember-me" name="remember_me">
+                                    <label class="form-check-label" for="remember-me">
+                                        مرا به خاطر بسپار
+                                    </label>
+                                </div>
+                                <a href="{% url 'forgot_password' %}" class="forgot-link">
+                                    رمز عبور را فراموش کرده‌اید؟
+                                </a>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-custom btn-primary btn-lg w-100 submit-btn">
+                                <span class="btn-text">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    ورود به سیستم
+                                </span>
+                                <span class="btn-loading">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    در حال ورود...
+                                </span>
+                            </button>
+                        </form>
+
+                        <!-- Divider -->
+                        <div class="auth-divider">
+                            <span>یا</span>
+                        </div>
+
+                        <!-- Social Login (Future) -->
+                        <div class="social-login">
+                            <button class="btn btn-outline btn-google" onclick="showComingSoon('ورود با گوگل')">
+                                <i class="fab fa-google me-2"></i>
+                                ورود با گوگل
+                            </button>
+                            <button class="btn btn-outline btn-github" onclick="showComingSoon('ورود با گیت‌هاب')">
+                                <i class="fab fa-github me-2"></i>
+                                ورود با گیت‌هاب
+                            </button>
+                        </div>
+
+                        <!-- Sign Up Link -->
+                        <div class="auth-footer">
+                            <p>
+                                حساب کاربری ندارید؟
+                                <a href="{% url 'signup' %}" class="auth-link">ثبت نام کنید</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Visual -->
+            <div class="col-lg-6 d-none d-lg-flex">
+                <div class="auth-visual">
+                    <div class="visual-content">
+                        <div class="visual-header">
+                            <h2>کنترل هوشمند ESP32</h2>
+                            <p>دستگاه‌های خود را از هر جا مدیریت کنید</p>
+                        </div>
+                        
+                        <div class="visual-features">
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h4>امنیت بالا</h4>
+                                    <p>رمزنگاری پیشرفته و احراز هویت دو مرحله‌ای</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h4>نظارت ۲۴/۷</h4>
+                                    <p>کنترل و نظارت مداوم بر دستگاه‌های شما</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h4>تحلیل هوشمند</h4>
+                                    <p>گزارش‌های دقیق و تحلیل داده‌های دستگاه</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">1250+</div>
+                                <div class="stat-label">کاربر فعال</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">3400+</div>
+                                <div class="stat-label">دستگاه متصل</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">99.9%</div>
+                                <div class="stat-label">آپتایم</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/auth.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    new AuthPage();
+});
+</script>
+{% endblock %}
+

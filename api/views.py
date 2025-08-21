@@ -5,7 +5,9 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from accounts.models import ESP32Device
 import json
-
+from django.core.cache import cache
+import uuid
+from datetime import timedelta
 # Simple in-memory command queue (renamed to avoid conflict)
 device_command_queue = {}
 
@@ -51,32 +53,39 @@ def device_status(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def device_commands(request):
-    """دریافت دستورات برای ESP32"""
+    """دریافت دستورات برای ESP32 - Optimized with Redis"""
     try:
-        # احراز هویت API Key
-        api_key = request.headers.get('X-API-Key') or request.headers.get('Authorization', '').replace('Bearer ', '')
-        
+        api_key = request.headers.get('X-API-Key')
         if not api_key:
             return JsonResponse({'error': 'API Key required'}, status=401)
         
-        try:
-            device = ESP32Device.objects.get(api_key=api_key, status='approved')
-        except ESP32Device.DoesNotExist:
-            return JsonResponse({'error': 'Invalid API Key'}, status=401)
+        # Cache device lookup
+        cache_key = f"device:{api_key}"
+        device = cache.get(cache_key)
         
-        # چک کردن دستورات در صف
-        device_id = str(device.id)
-        if device_id in device_command_queue and device_command_queue[device_id]:
-            command = device_command_queue[device_id].pop(0)  # گرفتن اولین دستور
-            print(f"📤 Sending command to {device.name}: {command}")
+        if not device:
+            try:
+                device = ESP32Device.objects.select_related('user').get(
+                    api_key=api_key, status='approved'
+                )
+                cache.set(cache_key, device, timeout=300)  # 5 minutes
+            except ESP32Device.DoesNotExist:
+                return JsonResponse({'error': 'Invalid API Key'}, status=401)
+        
+        # Get commands from Redis
+        commands_key = f"commands:{device.id}"
+        commands = cache.get(commands_key, [])
+        
+        if commands:
+            command = commands.pop(0)
+            cache.set(commands_key, commands, timeout=3600)  # 1 hour
             return JsonResponse(command)
         
-        return HttpResponse(status=204)  # No commands
+        return HttpResponse(status=204)
         
     except Exception as e:
-        print(f"❌ Error in device_commands: {e}")
+        logger.error(f"Error in device_commands: {e}")
         return JsonResponse({'error': 'Internal error'}, status=500)
-
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -107,33 +116,30 @@ def device_confirm(request):
         return JsonResponse({'error': 'Internal error'}, status=500)
 
 
-@csrf_exempt
+@csrf_exempt 
 @require_http_methods(["POST"])
 def device_control(request, device_id):
-    """کنترل دستگاه از وب"""
+    """کنترل دستگاه - Optimized with Redis queue"""
     try:
-        # پیدا کردن دستگاه
-        device = ESP32Device.objects.get(id=device_id, user=request.user, status='approved')
+        device = ESP32Device.objects.select_related('user').get(
+            id=device_id, user=request.user, status='approved'
+        )
         
         data = json.loads(request.body)
         action = data.get('action')
         value = data.get('value')
         
-        # ساخت دستور
         command = {
-            'command_id': f"cmd_{int(timezone.now().timestamp())}",
+            'command_id': str(uuid.uuid4()),
             'action': f"led_{value}" if action == 'led' else action,
             'timestamp': timezone.now().isoformat()
         }
         
-        # اضافه کردن به صف دستورات
-        device_id_str = str(device.id)
-        if device_id_str not in device_command_queue:
-            device_command_queue[device_id_str] = []
-        
-        device_command_queue[device_id_str].append(command)
-        
-        print(f"🎛️ Command queued for {device.name}: {command}")
+        # Add to Redis queue
+        commands_key = f"commands:{device.id}"
+        commands = cache.get(commands_key, [])
+        commands.append(command)
+        cache.set(commands_key, commands, timeout=3600)
         
         return JsonResponse({
             'success': True,
@@ -141,12 +147,9 @@ def device_control(request, device_id):
             'command_id': command['command_id']
         })
         
-    except ESP32Device.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Device not found'}, status=404)
     except Exception as e:
-        print(f"❌ Error in device_control: {e}")
+        logger.error(f"Error in device_control: {e}")
         return JsonResponse({'success': False, 'message': 'Internal error'}, status=500)
-
 
 @csrf_exempt
 @require_http_methods(["GET"])

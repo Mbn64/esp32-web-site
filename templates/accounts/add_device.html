@@ -1,0 +1,273 @@
+<!-- templates/accounts/add_device.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}افزودن دستگاه جدید - mbn13.ir{% endblock %}
+{% block description %}درخواست افزودن دستگاه ESP32 جدید{% endblock %}
+
+{% block body_class %}add-device-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/add-device.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="add-device-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div class="breadcrumb-nav">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="{% url 'dashboard' %}">
+                                        <i class="fas fa-home me-1"></i>
+                                        داشبورد
+                                    </a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    افزودن دستگاه جدید
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                    
+                    <div class="page-title-section">
+                        <h1 class="page-title">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            افزودن دستگاه ESP32 جدید
+                        </h1>
+                        <p class="page-subtitle">
+                            برای افزودن دستگاه جدید، فرم زیر را تکمیل کنید. درخواست شما پس از بررسی تایید خواهد شد.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Form Section -->
+                    <div class="col-md-8">
+                        <div class="form-card">
+                            <div class="form-header">
+                                <h3 class="form-title">
+                                    <i class="fas fa-microchip me-2"></i>
+                                    اطلاعات دستگاه
+                                </h3>
+                                <p class="form-description">
+                                    نام مناسبی برای دستگاه خود انتخاب کنید
+                                </p>
+                            </div>
+
+                            <form method="post" id="add-device-form" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                
+                                <div class="form-group">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label required">
+                                        <i class="fas fa-tag me-2"></i>
+                                        نام دستگاه
+                                    </label>
+                                    
+                                    <div class="input-wrapper">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-microchip"></i>
+                                            </span>
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="{{ form.name.id_for_label }}"
+                                                   name="{{ form.name.name }}"
+                                                   value="{{ form.name.value|default:'' }}"
+                                                   placeholder="مثال: سنسور دما اتاق، کنترلر LED، ..."
+                                                   required
+                                                   maxlength="100"
+                                                   autocomplete="off">
+                                            <div class="input-group-text name-counter">
+                                                <span id="name-count">0</span>/100
+                                            </div>
+                                        </div>
+                                        
+                                        {% if form.name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                {{ form.name.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="form-help">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            نام دستگاه باید توصیفی و منحصر به فرد باشد
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary btn-lg submit-btn">
+                                        <span class="btn-text">
+                                            <i class="fas fa-paper-plane me-2"></i>
+                                            ارسال درخواست
+                                        </span>
+                                        <span class="btn-loading">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>
+                                            در حال ارسال...
+                                        </span>
+                                    </button>
+                                    
+                                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                                        <i class="fas fa-arrow-right me-2"></i>
+                                        انصراف
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Info Section -->
+                    <div class="col-md-4">
+                        <div class="info-cards">
+                            <!-- Process Info -->
+                            <div class="info-card process-info">
+                                <div class="info-header">
+                                    <div class="info-icon">
+                                        <i class="fas fa-list-ol"></i>
+                                    </div>
+                                    <h4 class="info-title">مراحل تایید</h4>
+                                </div>
+                                
+                                <div class="process-steps">
+                                    <div class="step">
+                                        <div class="step-number">1</div>
+                                        <div class="step-content">
+                                            <div class="step-title">ارسال درخواست</div>
+                                            <div class="step-desc">فرم را تکمیل و ارسال کنید</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step">
+                                        <div class="step-number">2</div>
+                                        <div class="step-content">
+                                            <div class="step-title">بررسی توسط ادمین</div>
+                                            <div class="step-desc">معمولاً تا 24 ساعت طول می‌کشد</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="step">
+                                        <div class="step-number">3</div>
+                                        <div class="step-content">
+                                            <div class="step-title">دریافت API Key</div>
+                                            <div class="step-desc">پس از تایید، کلید API دریافت کنید</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Requirements Info -->
+                            <div class="info-card requirements-info">
+                                <div class="info-header">
+                                    <div class="info-icon">
+                                        <i class="fas fa-clipboard-check"></i>
+                                    </div>
+                                    <h4 class="info-title">الزامات</h4>
+                                </div>
+                                
+                                <div class="requirements-list">
+                                    <div class="requirement-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>نام دستگاه باید واضح و توصیفی باشد</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>هر کاربر حداکثر 10 دستگاه فعال</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>استفاده از ESP32 اصلی</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>پروژه باید قانونی و سازنده باشد</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Help Info -->
+                            <div class="info-card help-info">
+                                <div class="info-header">
+                                    <div class="info-icon">
+                                        <i class="fas fa-question-circle"></i>
+                                    </div>
+                                    <h4 class="info-title">راهنما</h4>
+                                </div>
+                                
+                                <div class="help-content">
+                                    <p>پس از تایید درخواست، می‌توانید:</p>
+                                    <ul>
+                                        <li>
+                                            <i class="fas fa-code me-1"></i>
+                                            کد نمونه Arduino دریافت کنید
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-key me-1"></i>
+                                            API Key منحصر به فرد دریافت کنید
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-chart-line me-1"></i>
+                                            داده‌ها را مانیتور کنید
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-cog me-1"></i>
+                                            دستگاه را از راه دور کنترل کنید
+                                        </li>
+                                    </ul>
+                                    
+                                    <div class="help-actions">
+                                        <a href="#" class="btn btn-sm btn-outline-primary" 
+                                           onclick="showComingSoon('مستندات')">
+                                            <i class="fas fa-book me-1"></i>
+                                            مشاهده مستندات
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h4 class="success-title">درخواست با موفقیت ارسال شد!</h4>
+                <p class="success-message">
+                    درخواست افزودن دستگاه شما ثبت شد و در صف بررسی قرار گرفت.
+                    نتیجه بررسی از طریق ایمیل اطلاع‌رسانی خواهد شد.
+                </p>
+                <div class="success-actions">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>
+                        بازگشت به داشبورد
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/add-device.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    new AddDevicePage();
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,52 @@
+<!-- templates/admin/partials/pending_requests.html -->
+{% if pending_requests %}
+    {% for request in pending_requests %}
+    <div class="request-item">
+        <div class="request-header">
+            <h5 class="request-title">{{ request.name }}</h5>
+            <div class="request-time">
+                <i class="fas fa-clock me-1"></i>
+                {{ request.created_at|timesince }} پیش
+            </div>
+        </div>
+        <div class="request-details">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {{ request.user.username|first|upper }}
+                </div>
+                <div class="user-details">
+                    <div class="user-name">{{ request.user.username }}</div>
+                    <div class="user-email">{{ request.user.email }}</div>
+                </div>
+            </div>
+            <div class="device-meta">
+                <div class="device-id">ID: {{ request.id|slice:":8" }}...</div>
+            </div>
+            <div class="request-actions">
+                <button class="btn btn-success btn-sm" 
+                        id="approve-btn-{{ request.id }}"
+                        onclick="approveDevice('{{ request.id }}')">
+                    <i class="fas fa-check me-2"></i>تایید
+                </button>
+                <button class="btn btn-outline-info btn-sm" 
+                        onclick="showDeviceDetails('{{ request.id }}')">
+                    <i class="fas fa-eye me-2"></i>جزئیات
+                </button>
+                <button class="btn btn-danger btn-sm" 
+                        onclick="showRejectModal('{{ request.id }}', '{{ request.name }}')">
+                    <i class="fas fa-times me-2"></i>رد
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <p class="empty-title">همه درخواست‌ها بررسی شده‌اند</p>
+        <p class="empty-text">در حال حاضر درخواست جدیدی برای بررسی وجود ندارد</p>
+    </div>
+{% endif %}
+

@@ -1,62 +1,205 @@
+<!-- templates/accounts/verify_email.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}تایید ایمیل - mbn13.ir{% endblock %}
+{% block description %}تایید ایمیل حساب کاربری{% endblock %}
+
+{% block body_class %}verify-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/verify.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body p-5 text-center">
-                <div class="mb-4">
-                    <i class="fas fa-envelope-open fa-4x text-primary mb-3"></i>
-                    <h3>تایید ایمیل</h3>
-                    <p class="text-muted">
-                        کد تایید 6 رقمی به ایمیل 
-                        <strong>{{ user.email }}</strong> 
-                        ارسال شد
-                    </p>
-                </div>
-
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="mb-4">
-                        <label for="{{ form.code.id_for_label }}" class="form-label">
-                            کد تایید 6 رقمی
-                        </label>
-                        {{ form.code }}
-                        {% if form.code.errors %}
-                            <div class="text-danger small mt-2">
-                                {{ form.code.errors.0 }}
+<div class="verify-container">
+    <div class="verify-background">
+        <div class="floating-elements"></div>
+    </div>
+    
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="verify-card">
+                    <div class="verify-header">
+                        <div class="verify-icon">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-envelope-open"></i>
                             </div>
-                        {% endif %}
+                            <div class="icon-pulse"></div>
+                        </div>
+                        
+                        <h1 class="verify-title">تایید ایمیل</h1>
+                        <p class="verify-subtitle">
+                            کد تایید 6 رقمی به ایمیل زیر ارسال شد:
+                        </p>
+                        <div class="email-display">
+                            <i class="fas fa-envelope me-2"></i>
+                            <strong>{{ user.email }}</strong>
+                        </div>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success btn-lg btn-custom">
-                            <i class="fas fa-check me-2"></i>تایید و ورود
-                        </button>
+                    <div class="verify-form">
+                        <form method="post" id="verify-form">
+                            {% csrf_token %}
+                            
+                            <div class="code-input-wrapper">
+                                <label for="{{ form.code.id_for_label }}" class="form-label">
+                                    کد تایید 6 رقمی
+                                </label>
+                                <div class="code-input-container">
+                                    <input type="text" 
+                                           id="code-digit-1" 
+                                           class="code-digit" 
+                                           maxlength="1" 
+                                           pattern="[0-9]"
+                                           inputmode="numeric">
+                                    <input type="text" 
+                                           id="code-digit-2" 
+                                           class="code-digit" 
+                                           maxlength="1" 
+                                           pattern="[0-9]"
+                                           inputmode="numeric">
+                                    <input type="text" 
+                                           id="code-digit-3" 
+                                           class="code-digit" 
+                                           maxlength="1" 
+                                           pattern="[0-9]"
+                                           inputmode="numeric">
+                                    <input type="text" 
+                                           id="code-digit-4" 
+                                           class="code-digit" 
+                                           maxlength="1" 
+                                           pattern="[0-9]"
+                                           inputmode="numeric">
+                                    <input type="text" 
+                                           id="code-digit-5" 
+                                           class="code-digit" 
+                                           maxlength="1" 
+                                           pattern="[0-9]"
+                                           inputmode="numeric">
+                                    <input type="text" 
+                                           id="code-digit-6" 
+                                           class="code-digit" 
+                                           maxlength="1" 
+                                           pattern="[0-9]"
+                                           inputmode="numeric">
+                                </div>
+                                <input type="hidden" 
+                                       id="{{ form.code.id_for_label }}" 
+                                       name="{{ form.code.name }}" 
+                                       value="{{ form.code.value|default:'' }}">
+                                
+                                {% if form.code.errors %}
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        {{ form.code.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="timer-section">
+                                <div class="timer-display">
+                                    <i class="fas fa-clock me-2"></i>
+                                    <span id="timer">15:00</span>
+                                </div>
+                                <p class="timer-text">زمان باقی مانده برای اعتبار کد</p>
+                            </div>
+
+                            <div class="verify-actions">
+                                <button type="submit" class="btn btn-primary btn-lg w-100 verify-btn">
+                                    <span class="btn-text">
+                                        <i class="fas fa-check me-2"></i>
+                                        تایید و ورود
+                                    </span>
+                                    <span class="btn-loading">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>
+                                        در حال تایید...
+                                    </span>
+                                </button>
+
+                                <div class="resend-section">
+                                    <p class="resend-text">کد دریافت نکردید؟</p>
+                                    <button type="button" 
+                                            class="btn btn-outline-secondary resend-btn" 
+                                            id="resend-btn" 
+                                            onclick="resendCode()"
+                                            disabled>
+                                        <span class="resend-text">
+                                            <i class="fas fa-paper-plane me-2"></i>
+                                            ارسال مجدد کد
+                                        </span>
+                                        <span class="resend-loading d-none">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>
+                                            در حال ارسال...
+                                        </span>
+                                        <span class="resend-countdown"></span>
+                                    </button>
+                                </div>
+
+                                <div class="back-link">
+                                    <a href="{% url 'signup' %}" class="btn btn-link">
+                                        <i class="fas fa-arrow-right me-2"></i>
+                                        بازگشت به ثبت نام
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </form>
 
-                <div class="mt-4">
-                    <small class="text-muted">
-                        <i class="fas fa-clock me-1"></i>
-                        کد تایید تا 5 دقیقه معتبر است
-                    </small>
-                    <br>
-                    <a href="{% url 'resend_verification' %}" class="btn btn-outline-primary btn-sm mt-2">
-                        <i class="fas fa-redo me-1"></i>ارسال مجدد کد
-                    </a>
-                </div>
-
-                <div class="mt-3">
-                    <a href="{% url 'signup' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-right me-2"></i>بازگشت به ثبت نام
-                    </a>
+                    <div class="verify-help">
+                        <div class="help-item">
+                            <i class="fas fa-info-circle"></i>
+                            <span>کد ممکن است در پوشه اسپم ایمیل شما باشد</span>
+                        </div>
+                        <div class="help-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>این کد فقط یک بار قابل استفاده است</span>
+                        </div>
+                        <div class="help-item">
+                            <i class="fas fa-clock"></i>
+                            <span>کد تا 15 دقیقه معتبر خواهد بود</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/verify.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    new VerifyPage();
+});
+
+function resendCode() {
+    fetch('{% url "resend_verification" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json().catch(() => ({ success: true })))
+    .then(data => {
+        if (window.App && window.App.showToast) {
+            window.App.showToast('کد تایید جدید ارسال شد', 'success');
+        }
+        // Reset timer
+        if (window.verifyPageInstance) {
+            window.verifyPageInstance.resetTimer();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (window.App && window.App.showToast) {
+            window.App.showToast('خطا در ارسال کد. دوباره تلاش کنید', 'error');
+        }
+    });
+}
+</script>
+{% endblock %}
+
