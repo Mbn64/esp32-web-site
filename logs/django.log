@@ -104,3 +104,10 @@ Traceback (most recent call last):
     raise self.error(
 django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 22: 'static'. Did you forget to register or load this tag?
 ERROR 2025-08-14 03:03:10,477 basehttp 41371 140352589837888 "GET / HTTP/1.0" 500 191086
+INFO 2025-09-13 18:40:27,006 autoreload 784068 140445216935936 Watching for file changes with StatReloader
+INFO 2025-09-13 18:44:00,283 autoreload 784275 140195872280576 Watching for file changes with StatReloader
+INFO 2025-09-14 18:31:50,955 autoreload 27898 140401310187520 Watching for file changes with StatReloader
+INFO 2025-09-14 18:33:32,686 autoreload 27933 140495651811328 Watching for file changes with StatReloader
+INFO 2025-09-14 18:34:09,975 autoreload 27944 139971902361600 Watching for file changes with StatReloader
+INFO 2025-09-14 18:37:56,755 autoreload 28051 139840716595200 Watching for file changes with StatReloader
+INFO 2025-09-14 18:38:53,863 autoreload 28088 139685675421696 Watching for file changes with StatReloader
