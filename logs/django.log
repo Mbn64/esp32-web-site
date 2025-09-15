@@ -111,3 +111,497 @@ INFO 2025-09-14 18:33:32,686 autoreload 27933 140495651811328 Watching for file 
 INFO 2025-09-14 18:34:09,975 autoreload 27944 139971902361600 Watching for file changes with StatReloader
 INFO 2025-09-14 18:37:56,755 autoreload 28051 139840716595200 Watching for file changes with StatReloader
 INFO 2025-09-14 18:38:53,863 autoreload 28088 139685675421696 Watching for file changes with StatReloader
+INFO 2025-09-14 18:52:06,331 autoreload 28378 140355815231488 Watching for file changes with StatReloader
+INFO 2025-09-14 18:53:22,601 autoreload 28403 140520707002368 Watching for file changes with StatReloader
+ERROR 2025-09-14 18:53:35,046 log 28403 140520585164352 Internal Server Error: /
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/root/esp32-web-site/accounts/views.py", line 30, in home
+    return render(request, 'home.html')
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 173, in render
+    with context.bind_template(self):
+  File "/usr/lib/python3.10/contextlib.py", line 135, in __enter__
+    return next(self.gen)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/context.py", line 251, in bind_template
+    processors = template.engine.template_context_processors + self._processors
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/engine.py", line 116, in template_context_processors
+    return tuple(import_string(path) for path in context_processors)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/engine.py", line 116, in <genexpr>
+    return tuple(import_string(path) for path in context_processors)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/module_loading.py", line 30, in import_string
+    return cached_import(module_path, class_name)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/module_loading.py", line 15, in cached_import
+    module = import_module(module_path)
+  File "/usr/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'accounts.context_processors'
+ERROR 2025-09-14 18:53:35,052 basehttp 28403 140520585164352 "GET / HTTP/1.0" 500 128296
+ERROR 2025-09-14 18:54:16,295 log 28403 140520585164352 Internal Server Error: /
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/root/esp32-web-site/accounts/views.py", line 30, in home
+    return render(request, 'home.html')
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 173, in render
+    with context.bind_template(self):
+  File "/usr/lib/python3.10/contextlib.py", line 135, in __enter__
+    return next(self.gen)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/context.py", line 251, in bind_template
+    processors = template.engine.template_context_processors + self._processors
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/engine.py", line 116, in template_context_processors
+    return tuple(import_string(path) for path in context_processors)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/engine.py", line 116, in <genexpr>
+    return tuple(import_string(path) for path in context_processors)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/module_loading.py", line 30, in import_string
+    return cached_import(module_path, class_name)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/module_loading.py", line 15, in cached_import
+    module = import_module(module_path)
+  File "/usr/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'accounts.context_processors'
+ERROR 2025-09-14 18:54:16,298 basehttp 28403 140520585164352 "GET / HTTP/1.0" 500 128433
+INFO 2025-09-14 18:56:27,872 autoreload 28452 139852700516352 Watching for file changes with StatReloader
+ERROR 2025-09-14 18:56:31,565 log 28452 139852645398080 Internal Server Error: /
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/root/esp32-web-site/accounts/views.py", line 30, in home
+    return render(request, 'home.html')
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 173, in render
+    with context.bind_template(self):
+  File "/usr/lib/python3.10/contextlib.py", line 135, in __enter__
+    return next(self.gen)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/context.py", line 251, in bind_template
+    processors = template.engine.template_context_processors + self._processors
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/engine.py", line 116, in template_context_processors
+    return tuple(import_string(path) for path in context_processors)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/engine.py", line 116, in <genexpr>
+    return tuple(import_string(path) for path in context_processors)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/module_loading.py", line 30, in import_string
+    return cached_import(module_path, class_name)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/module_loading.py", line 15, in cached_import
+    module = import_module(module_path)
+  File "/usr/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/root/esp32-web-site/accounts/context_processors.py", line 3, in <module>
+    from django.contrib.sites.models import Site
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/sites/models.py", line 79, in <module>
+    class Site(models.Model):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/base.py", line 134, in __new__
+    raise RuntimeError(
+RuntimeError: Model class django.contrib.sites.models.Site doesn't declare an explicit app_label and isn't in an application in INSTALLED_APPS.
+ERROR 2025-09-14 18:56:31,574 basehttp 28452 139852645398080 "GET / HTTP/1.0" 500 173264
+INFO 2025-09-14 18:57:48,016 autoreload 28540 139801737678848 Watching for file changes with StatReloader
+INFO 2025-09-14 18:58:49,423 autoreload 28557 140063895793664 Watching for file changes with StatReloader
+INFO 2025-09-14 18:58:52,167 basehttp 28557 140063774078528 "GET / HTTP/1.0" 200 25955
+ERROR 2025-09-14 18:58:59,989 log 28557 140063774078528 Internal Server Error: /signup/
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/password_validation.py", line 29, in get_password_validators
+    klass = import_string(validator["NAME"])
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/module_loading.py", line 30, in import_string
+    return cached_import(module_path, class_name)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/module_loading.py", line 15, in cached_import
+    module = import_module(module_path)
+  File "/usr/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1004, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'accounts.validators'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/root/esp32-web-site/accounts/views.py", line 64, in signup_view
+    return render(request, 'accounts/signup.html', {'form': form})
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 175, in render
+    return self._render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 167, in _render
+    return self.nodelist.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/loader_tags.py", line 157, in render
+    return compiled_parent._render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 167, in _render
+    return self.nodelist.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/loader_tags.py", line 63, in render
+    result = block.nodelist.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 1064, in render
+    output = self.filter_expression.resolve(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 715, in resolve
+    obj = self.var.resolve(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 847, in resolve
+    value = self._resolve_lookup(context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/template/base.py", line 880, in _resolve_lookup
+    current = current[bit]
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 189, in __getitem__
+    self._bound_fields_cache[name] = field.get_bound_field(self, name)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/fields.py", line 248, in get_bound_field
+    return BoundField(form, self, field_name)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/boundfield.py", line 28, in __init__
+    self.help_text = field.help_text or ""
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/functional.py", line 149, in __wrapper__
+    res = func(*self.__args, **self.__kw)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/password_validation.py", line 89, in _password_validators_help_text_html
+    help_texts = password_validators_help_texts(password_validators)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/password_validation.py", line 78, in password_validators_help_texts
+    password_validators = get_default_password_validators()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/password_validation.py", line 22, in get_default_password_validators
+    return get_password_validators(settings.AUTH_PASSWORD_VALIDATORS)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/password_validation.py", line 35, in get_password_validators
+    raise ImproperlyConfigured(msg % validator["NAME"])
+django.core.exceptions.ImproperlyConfigured: The module in NAME could not be imported: accounts.validators.CustomPasswordValidator. Check your AUTH_PASSWORD_VALIDATORS setting.
+ERROR 2025-09-14 18:58:59,996 basehttp 28557 140063774078528 "GET /signup/ HTTP/1.0" 500 236947
+INFO 2025-09-14 19:00:51,474 autoreload 28607 140395724320768 Watching for file changes with StatReloader
+INFO 2025-09-14 19:00:54,969 basehttp 28607 140395669354048 "GET /signup/ HTTP/1.0" 200 24079
+INFO 2025-09-14 19:01:06,586 basehttp 28607 140395669354048 "GET /login/ HTTP/1.0" 200 21762
+INFO 2025-09-14 19:01:12,798 basehttp 28607 140395669354048 "GET / HTTP/1.0" 200 25955
+INFO 2025-09-14 19:01:17,825 basehttp 28607 140395669354048 "GET /login/ HTTP/1.0" 200 21762
+INFO 2025-09-14 19:01:21,891 basehttp 28607 140395669354048 "GET /ajax/check-username/?username=13nbn HTTP/1.0" 200 221
+INFO 2025-09-14 19:01:25,405 basehttp 28607 140395669354048 "GET /ajax/check-username/?username=mbn13 HTTP/1.0" 200 190
+ERROR 2025-09-14 19:01:37,395 log 28607 140395669354048 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such column: accounts_customuser.phone_number
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/root/esp32-web-site/accounts/views.py", line 130, in login_view
+    if form.is_valid():
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 201, in is_valid
+    return self.is_bound and not self.errors
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 196, in errors
+    self.full_clean()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 434, in full_clean
+    self._clean_form()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 455, in _clean_form
+    cleaned_data = self.clean()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/forms.py", line 250, in clean
+    self.user_cache = authenticate(
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/views/decorators/debug.py", line 42, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/__init__.py", line 77, in authenticate
+    user = backend.authenticate(request, **credentials)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/backends.py", line 46, in authenticate
+    user = UserModel._default_manager.get_by_natural_key(username)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/base_user.py", line 54, in get_by_natural_key
+    return self.get(**{self.model.USERNAME_FIELD: username})
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 633, in get
+    num = len(clone)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 380, in __len__
+    self._fetch_all()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such column: accounts_customuser.phone_number
+ERROR 2025-09-14 19:01:37,404 basehttp 28607 140395669354048 "POST /login/ HTTP/1.0" 500 195721
+INFO 2025-09-14 19:02:30,351 autoreload 28628 140552496787456 Watching for file changes with StatReloader
+ERROR 2025-09-14 19:02:34,309 log 28628 140552441951808 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such column: accounts_customuser.phone_number
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/root/esp32-web-site/accounts/views.py", line 130, in login_view
+    if form.is_valid():
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 201, in is_valid
+    return self.is_bound and not self.errors
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 196, in errors
+    self.full_clean()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 434, in full_clean
+    self._clean_form()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/forms/forms.py", line 455, in _clean_form
+    cleaned_data = self.clean()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/forms.py", line 250, in clean
+    self.user_cache = authenticate(
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/views/decorators/debug.py", line 42, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/__init__.py", line 77, in authenticate
+    user = backend.authenticate(request, **credentials)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/backends.py", line 46, in authenticate
+    user = UserModel._default_manager.get_by_natural_key(username)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/contrib/auth/base_user.py", line 54, in get_by_natural_key
+    return self.get(**{self.model.USERNAME_FIELD: username})
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 633, in get
+    num = len(clone)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 380, in __len__
+    self._fetch_all()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such column: accounts_customuser.phone_number
+ERROR 2025-09-14 19:02:34,317 basehttp 28628 140552441951808 "POST /login/ HTTP/1.0" 500 195721
+INFO 2025-09-14 19:04:56,175 autoreload 28665 140226979819520 Watching for file changes with StatReloader
+INFO 2025-09-14 19:05:02,283 basehttp 28665 140226857006656 "POST /login/ HTTP/1.0" 200 23245
+INFO 2025-09-14 19:05:22,049 basehttp 28665 140226857006656 "POST /login/ HTTP/1.0" 302 0
+ERROR 2025-09-14 19:05:22,436 log 28665 140226857006656 Internal Server Error: /admin/
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 38, in process_request
+    self._log_security_events(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 70, in _log_security_events
+    self._check_suspicious_login(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 78, in _check_suspicious_login
+    from .models import LoginHistory, SecurityEvent
+ImportError: cannot import name 'LoginHistory' from 'accounts.models' (/root/esp32-web-site/accounts/models.py)
+ERROR 2025-09-14 19:05:22,438 basehttp 28665 140226857006656 "GET /admin/ HTTP/1.0" 500 79155
+INFO 2025-09-14 19:08:21,360 autoreload 28727 140057081921536 Watching for file changes with StatReloader
+ERROR 2025-09-14 19:08:24,086 log 28727 140057027540544 Internal Server Error: /admin/
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such table: accounts_login_history
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 38, in process_request
+    self._log_security_events(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 70, in _log_security_events
+    self._check_suspicious_login(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 90, in _check_suspicious_login
+    if recent_logins.exists():
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 1241, in exists
+    return self.query.has_results(using=self.db)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 598, in has_results
+    return compiler.has_results()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/sql/compiler.py", line 1530, in has_results
+    return bool(self.execute_sql(SINGLE))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such table: accounts_login_history
+ERROR 2025-09-14 19:08:24,093 basehttp 28727 140057027540544 "GET /admin/ HTTP/1.0" 500 141930
+ERROR 2025-09-14 19:08:29,677 log 28727 140057027540544 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such table: accounts_login_history
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 38, in process_request
+    self._log_security_events(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 70, in _log_security_events
+    self._check_suspicious_login(request)
+  File "/root/esp32-web-site/accounts/middleware.py", line 90, in _check_suspicious_login
+    if recent_logins.exists():
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/query.py", line 1241, in exists
+    return self.query.has_results(using=self.db)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/sql/query.py", line 598, in has_results
+    return compiler.has_results()
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/sql/compiler.py", line 1530, in has_results
+    return bool(self.execute_sql(SINGLE))
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/root/esp32-web-site/venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such table: accounts_login_history
+ERROR 2025-09-14 19:08:29,680 basehttp 28727 140057027540544 "POST /login/ HTTP/1.0" 500 142725
+INFO 2025-09-14 19:08:46,343 autoreload 28738 140568141475840 Watching for file changes with StatReloader
+WARNING 2025-09-14 19:08:49,977 log 28738 140568086705728 Forbidden (CSRF token from POST incorrect.): /login/
+WARNING 2025-09-14 19:08:49,981 basehttp 28738 140568086705728 "POST /login/ HTTP/1.0" 403 2518
+INFO 2025-09-14 19:08:56,260 basehttp 28738 140568086705728 "GET / HTTP/1.0" 200 29815
+INFO 2025-09-14 19:08:59,934 basehttp 28738 140568086705728 "GET /admin/ HTTP/1.0" 200 33477
+INFO 2025-09-14 19:09:07,898 basehttp 28738 140568086705728 "GET /admin/accounts/esp32device/add/ HTTP/1.0" 200 45507
+INFO 2025-09-14 19:09:08,193 basehttp 28738 140568086705728 "GET /admin/jsi18n/ HTTP/1.0" 200 3343
+INFO 2025-09-14 19:09:18,023 basehttp 28738 140568086705728 "GET /admin/accounts/customuser/ HTTP/1.0" 200 40333
+INFO 2025-09-14 19:09:18,333 basehttp 28738 140568086705728 "GET /admin/jsi18n/ HTTP/1.0" 200 3343
+INFO 2025-09-14 19:09:19,930 basehttp 28738 140568086705728 "GET /admin/ HTTP/1.0" 200 33477
+INFO 2025-09-14 19:09:22,227 basehttp 28738 140568086705728 "GET /admin/accounts/esp32device/ HTTP/1.0" 200 35876
+INFO 2025-09-14 19:09:22,501 basehttp 28738 140568086705728 "GET /admin/jsi18n/ HTTP/1.0" 200 3343
+INFO 2025-09-14 19:09:23,461 basehttp 28738 140568086705728 "GET /admin/accounts/customuser/ HTTP/1.0" 200 40333
+INFO 2025-09-14 19:09:23,763 basehttp 28738 140568086705728 "GET /admin/jsi18n/ HTTP/1.0" 200 3343
+INFO 2025-09-14 19:09:25,593 basehttp 28738 140568086705728 "GET /admin/auth/group/ HTTP/1.0" 200 31857
+INFO 2025-09-14 19:09:25,888 basehttp 28738 140568086705728 "GET /admin/jsi18n/ HTTP/1.0" 200 3343
+INFO 2025-09-14 19:09:30,520 basehttp 28738 140568086705728 "POST /admin/logout/ HTTP/1.0" 302 0
+INFO 2025-09-14 19:09:30,799 basehttp 28738 140568086705728 "GET / HTTP/1.0" 200 25955
+INFO 2025-09-14 19:09:33,494 basehttp 28738 140568086705728 "GET /login/ HTTP/1.0" 200 21762
+INFO 2025-09-14 19:09:36,945 basehttp 28738 140568086705728 "GET /ajax/check-username/?username=mbn13 HTTP/1.0" 200 190
+INFO 2025-09-14 19:09:42,833 basehttp 28738 140568086705728 "POST /login/ HTTP/1.0" 302 0
+INFO 2025-09-14 19:09:43,124 basehttp 28738 140568086705728 "GET /admin/ HTTP/1.0" 200 33974
+INFO 2025-09-14 19:15:36,618 autoreload 28881 140227730812928 Watching for file changes with StatReloader
+INFO 2025-09-14 19:15:40,916 basehttp 28881 140227675944512 "GET /admin/ HTTP/1.0" 200 33477
+INFO 2025-09-14 19:15:44,665 basehttp 28881 140227675944512 "GET /admin/accounts/esp32device/add/ HTTP/1.0" 200 45507
+INFO 2025-09-14 19:15:44,936 basehttp 28881 140227675944512 "GET /admin/jsi18n/ HTTP/1.0" 200 3343
+INFO 2025-09-14 19:16:01,087 basehttp 28881 140227675944512 "POST /admin/accounts/esp32device/add/ HTTP/1.0" 302 0
+INFO 2025-09-14 19:16:01,487 basehttp 28881 140227675944512 "GET /admin/accounts/esp32device/ HTTP/1.0" 200 42008
+INFO 2025-09-14 19:16:01,755 basehttp 28881 140227675944512 "GET /admin/jsi18n/ HTTP/1.0" 200 3343
+INFO 2025-09-14 19:16:07,628 basehttp 28881 140227675944512 "GET /admin/accounts/esp32device/710bb976-97a1-4be0-9560-b2a5ab5654f5/change/ HTTP/1.0" 200 46374
+INFO 2025-09-14 19:16:07,924 basehttp 28881 140227675944512 "GET /admin/jsi18n/ HTTP/1.0" 200 3343
+INFO 2025-09-14 19:17:50,368 basehttp 28881 140227675944512 "GET / HTTP/1.0" 200 25955
+INFO 2025-09-14 19:49:36,923 autoreload 29445 140461275594752 Watching for file changes with StatReloader
+INFO 2025-09-14 19:49:48,634 basehttp 29445 140461221082688 "GET / HTTP/1.0" 200 74114
+INFO 2025-09-14 19:50:40,303 basehttp 29445 140461221082688 "GET /dashboard/ HTTP/1.0" 200 75167
+INFO 2025-09-14 19:50:54,849 basehttp 29445 140461221082688 "GET /logout/ HTTP/1.0" 302 0
+INFO 2025-09-14 19:50:55,188 basehttp 29445 140461221082688 "GET / HTTP/1.0" 200 73806
+INFO 2025-09-14 19:58:00,890 autoreload 29694 140361120268288 Watching for file changes with StatReloader
+INFO 2025-09-14 19:58:08,921 basehttp 29694 140360998188608 "GET / HTTP/1.0" 200 68594
+INFO 2025-09-15 10:04:51,069 autoreload 44458 140185365962752 Watching for file changes with StatReloader
+INFO 2025-09-15 10:04:57,437 basehttp 44458 140185244268096 "GET / HTTP/1.0" 200 68594
+INFO 2025-09-15 10:05:11,119 basehttp 44458 140185244268096 "GET / HTTP/1.0" 200 68594

@@ -1,82 +1,191 @@
-<!-- templates/components/messages.html -->
+<!-- Modern Messages Component -->
 {% if messages %}
-<div class="messages-container">
+<div class="fixed top-20 right-4 z-50 space-y-2" id="messagesContainer">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show message-alert" role="alert">
-        <div class="message-content">
-            <div class="message-icon">
-                {% if message.tags == 'success' %}
-                    <i class="fas fa-check-circle"></i>
-                {% elif message.tags == 'error' %}
-                    <i class="fas fa-times-circle"></i>
+    <div class="message-toast bg-white dark:bg-gray-800 rounded-xl shadow-lg border-r-4 
+                {% if message.tags == 'error' or message.tags == 'danger' %}border-red-500{% elif message.tags == 'warning' %}border-yellow-500{% elif message.tags == 'success' %}border-green-500{% elif message.tags == 'info' %}border-blue-500{% else %}border-purple-500{% endif %} 
+                p-4 min-w-80 max-w-md transform translate-x-full transition-all duration-500 ease-out"
+         data-aos="slide-left" 
+         data-aos-duration="500">
+        
+        <div class="flex items-start space-x-3 space-x-reverse">
+            <!-- Icon -->
+            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center
+                        {% if message.tags == 'error' or message.tags == 'danger' %}bg-red-100 dark:bg-red-900/30{% elif message.tags == 'warning' %}bg-yellow-100 dark:bg-yellow-900/30{% elif message.tags == 'success' %}bg-green-100 dark:bg-green-900/30{% elif message.tags == 'info' %}bg-blue-100 dark:bg-blue-900/30{% else %}bg-purple-100 dark:bg-purple-900/30{% endif %}">
+                {% if message.tags == 'error' or message.tags == 'danger' %}
+                    <i class="fas fa-exclamation-circle text-red-500"></i>
                 {% elif message.tags == 'warning' %}
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                {% elif message.tags == 'success' %}
+                    <i class="fas fa-check-circle text-green-500"></i>
+                {% elif message.tags == 'info' %}
+                    <i class="fas fa-info-circle text-blue-500"></i>
                 {% else %}
-                    <i class="fas fa-info-circle"></i>
+                    <i class="fas fa-bell text-purple-500"></i>
                 {% endif %}
             </div>
-            <div class="message-text">
-                {{ message }}
+            
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+                        {% if message.tags == 'error' or message.tags == 'danger' %}
+                            خطا
+                        {% elif message.tags == 'warning' %}
+                            هشدار
+                        {% elif message.tags == 'success' %}
+                            موفقیت
+                        {% elif message.tags == 'info' %}
+                            اطلاعات
+                        {% else %}
+                            اعلان
+                        {% endif %}
+                    </h4>
+                    <button onclick="dismissMessage(this)" 
+                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {{ message }}
+                </p>
+                
+                <!-- Progress bar for auto-dismiss -->
+                <div class="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 overflow-hidden">
+                    <div class="progress-bar h-full 
+                                {% if message.tags == 'error' or message.tags == 'danger' %}bg-red-500{% elif message.tags == 'warning' %}bg-yellow-500{% elif message.tags == 'success' %}bg-green-500{% elif message.tags == 'info' %}bg-blue-500{% else %}bg-purple-500{% endif %} 
+                                transition-all duration-5000 ease-linear w-full"></div>
+                </div>
             </div>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
     </div>
     {% endfor %}
 </div>
 
 <style>
-.messages-container {
-    position: fixed;
-    top: 100px;
-    right: 20px;
-    z-index: var(--z-toast);
-    max-width: 400px;
-    width: 100%;
-}
-
-.message-alert {
-    margin-bottom: 12px;
-    border: none;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(10px);
-    animation: slideInRight 0.3s ease-out;
-}
-
-.message-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.message-icon {
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
-.message-text {
-    flex: 1;
-    font-weight: 500;
-}
-
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
+    .message-toast {
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: slideInFromRight 0.5s ease-out forwards;
     }
-    to {
-        opacity: 1;
-        transform: translateX(0);
+    
+    @keyframes slideInFromRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
-}
-
-@media (max-width: 768px) {
-    .messages-container {
-        right: 10px;
-        left: 10px;
-        max-width: none;
+    
+    @keyframes slideOutToRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
     }
-}
+    
+    .progress-bar {
+        animation: progressShrink 5s linear forwards;
+    }
+    
+    @keyframes progressShrink {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+    
+    .message-exit {
+        animation: slideOutToRight 0.3s ease-in forwards;
+    }
 </style>
-{% endif %}
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-dismiss messages after 5 seconds
+    const messages = document.querySelectorAll('.message-toast');
+    
+    messages.forEach((message, index) => {
+        // Stagger the animation
+        setTimeout(() => {
+            message.classList.remove('translate-x-full');
+        }, index * 100);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            dismissMessage(message.querySelector('button'));
+        }, 5000 + (index * 100));
+    });
+});
+
+function dismissMessage(button) {
+    const message = button.closest('.message-toast');
+    
+    message.classList.add('message-exit');
+    
+    setTimeout(() => {
+        if (message.parentNode) {
+            message.parentNode.removeChild(message);
+        }
+        
+        // Check if container is empty and remove it
+        const container = document.getElementById('messagesContainer');
+        if (container && container.children.length === 0) {
+            container.remove();
+        }
+    }, 300);
+}
+
+// Add swipe gesture support for mobile
+let startX = 0;
+let currentX = 0;
+let isTracking = false;
+
+document.querySelectorAll('.message-toast').forEach(message => {
+    message.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        isTracking = true;
+        this.style.transition = 'none';
+    });
+    
+    message.addEventListener('touchmove', function(e) {
+        if (!isTracking) return;
+        
+        currentX = e.touches[0].clientX;
+        const diffX = currentX - startX;
+        
+        if (diffX > 0) {
+            this.style.transform = `translateX(${diffX}px)`;
+            this.style.opacity = 1 - (diffX / 200);
+        }
+    });
+    
+    message.addEventListener('touchend', function(e) {
+        if (!isTracking) return;
+        
+        isTracking = false;
+        this.style.transition = 'all 0.3s ease-out';
+        
+        const diffX = currentX - startX;
+        
+        if (diffX > 100) {
+            // Swipe to dismiss
+            dismissMessage(this.querySelector('button'));
+        } else {
+            // Snap back
+            this.style.transform = 'translateX(0)';
+            this.style.opacity = '1';
+        }
+    });
+});
+</script>
+{% endif %}

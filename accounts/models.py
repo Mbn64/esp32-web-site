@@ -339,3 +339,45 @@ class SecurityEvent(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.get_event_type_display()}"
+
+# این کد را به انتهای فایل accounts/models.py اضافه کنید
+
+class LoginHistory(models.Model):
+    """تاریخچه ورود کاربران"""
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='login_history')
+    ip_address = models.GenericIPAddressField(verbose_name='آدرس IP')
+    user_agent = models.TextField(blank=True, verbose_name='User Agent')
+    
+    # Location info
+    country = models.CharField(max_length=100, blank=True, verbose_name='کشور')
+    city = models.CharField(max_length=100, blank=True, verbose_name='شهر')
+    
+    # Login details
+    success = models.BooleanField(default=True, verbose_name='موفق')
+    failure_reason = models.CharField(max_length=100, blank=True, verbose_name='دلیل عدم موفقیت')
+    
+    # Session info
+    session_key = models.CharField(max_length=40, blank=True, verbose_name='کلید جلسه')
+    
+    # Timestamps
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name='زمان')
+    logout_time = models.DateTimeField(null=True, blank=True, verbose_name='زمان خروج')
+    
+    # Additional context
+    context_data = models.JSONField(default=dict, blank=True, verbose_name='اطلاعات اضافی')
+    
+    class Meta:
+        db_table = 'accounts_login_history'
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['ip_address', 'timestamp']),
+            models.Index(fields=['success', 'timestamp']),
+        ]
+        ordering = ['-timestamp']
+        verbose_name = 'تاریخچه ورود'
+        verbose_name_plural = 'تاریخچه ورودها'
+    
+    def __str__(self):
+        status = "موفق" if self.success else "ناموفق"
+        return f"{self.user.username} - {status} - {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
