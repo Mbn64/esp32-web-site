@@ -6,7 +6,19 @@
  */
 class MBN13App {
     constructor() {
-        this.config = window.APP_CONFIG || {};
+        // تنظیم پیش‌فرض امن برای config
+        this.config = window.APP_CONFIG || {
+            user: {
+                isAuthenticated: false,
+                username: null,
+                email: null
+            },
+            csrfToken: null,
+            debug: false,
+            language: 'fa',
+            timezone: 'Asia/Tehran'
+        };
+        
         this.initialized = false;
         this.components = new Map();
         this.eventEmitter = new EventTarget();
@@ -21,6 +33,29 @@ class MBN13App {
         } else {
             this.init();
         }
+    }
+    
+    /**
+     * بررسی وضعیت احراز هویت کاربر
+     */
+    isUserAuthenticated() {
+        return this.config && 
+               this.config.user && 
+               this.config.user.isAuthenticated === true;
+    }
+    
+    /**
+     * دریافت نام کاربری
+     */
+    getUsername() {
+        return this.isUserAuthenticated() ? this.config.user.username : null;
+    }
+    
+    /**
+     * دریافت ایمیل کاربر
+     */
+    getUserEmail() {
+        return this.isUserAuthenticated() ? this.config.user.email : null;
     }
     
     /**
@@ -57,11 +92,11 @@ class MBN13App {
     }
     
     /**
-     * Initialize core modules
+     * Initialize core modules - ویرایش شده
      */
     async initializeCore() {
         // Initialize API client
-        this.api = new APIClient(this.config.csrfToken);
+        this.api = new APIClient(this.config.csrfToken || null);
         
         // Initialize notification system
         this.notifications = new NotificationSystem();
@@ -69,13 +104,13 @@ class MBN13App {
         // Initialize storage manager
         this.storage = new StorageManager();
         
-        // Initialize analytics
-        if (this.config.user.isAuthenticated) {
-            this.analytics = new Analytics(this.config.user.username);
+        // Initialize analytics - فقط برای کاربران احراز هویت شده
+        if (this.isUserAuthenticated()) {
+            this.analytics = new Analytics(this.getUsername());
         }
         
-        // Initialize real-time connection
-        if (this.config.user.isAuthenticated) {
+        // Initialize real-time connection - فقط برای کاربران احراز هویت شده
+        if (this.isUserAuthenticated()) {
             this.realtime = new RealtimeConnection();
             await this.realtime.connect();
         }
@@ -112,18 +147,24 @@ class MBN13App {
      */
     setupGlobalEvents() {
         // Handle unhandled errors
-        window.addEventListener('error', this.handleError);
-        window.addEventListener('unhandledrejection', this.handleError);
+        window.addEventListener('error', (event) => {
+            this.handleError(event.error);
+        });
         
-        // Handle online/offline status
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            this.handleError(event.reason);
+        });
+        
+        // Handle online/offline events
         window.addEventListener('online', () => {
-            this.notifications.show('اتصال برقرار شد', 'success');
-            this.emit('connection:online');
+            this.emit('network:online');
+            this.notifications.show('اتصال اینترنت برقرار شد', 'success');
         });
         
         window.addEventListener('offline', () => {
-            this.notifications.show('اتصال قطع شد', 'warning');
-            this.emit('connection:offline');
+            this.emit('network:offline');
+            this.notifications.show('اتصال اینترنت قطع شد', 'warning');
         });
         
         // Handle visibility change
@@ -134,70 +175,18 @@ class MBN13App {
                 this.emit('app:visible');
             }
         });
-        
-        // Handle keyboard shortcuts
-        document.addEventListener('keydown', this.handleKeyboardShortcuts.bind(this));
-        
-        // Handle service worker updates
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                window.location.reload();
-            });
-        }
     }
     
     /**
-     * Initialize theme system
+     * Initialize theme
      */
     initializeTheme() {
-        const savedTheme = this.storage.get('theme') || 'light';
-        this.setTheme(savedTheme);
+        const savedTheme = this.storage.get('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        // Listen for system theme changes
-        if (window.matchMedia) {
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            mediaQuery.addListener((e) => {
-                if (this.storage.get('theme') === 'auto') {
-                    this.setTheme(e.matches ? 'dark' : 'light');
-                }
-            });
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            document.documentElement.classList.add('dark');
         }
-    }
-    
-    /**
-     * Handle keyboard shortcuts
-     */
-    handleKeyboardShortcuts(event) {
-        const { ctrlKey, metaKey, altKey, key } = event;
-        const cmdKey = ctrlKey || metaKey;
-        
-        // Ctrl/Cmd + K: Focus search
-        if (cmdKey && key === 'k') {
-            event.preventDefault();
-            const searchInput = document.querySelector('[data-search]');
-            if (searchInput) searchInput.focus();
-        }
-        
-        // Ctrl/Cmd + /: Show shortcuts help
-        if (cmdKey && key === '/') {
-            event.preventDefault();
-            this.showShortcutsHelp();
-        }
-        
-        // Escape: Close modals
-        if (key === 'Escape') {
-            const modal = this.components.get('modals');
-            if (modal) modal.closeAll();
-        }
-    }
-    
-    /**
-     * Set theme
-     */
-    setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        this.storage.set('theme', theme);
-        this.emit('theme:changed', theme);
     }
     
     /**
@@ -206,171 +195,42 @@ class MBN13App {
     hideLoadingScreen() {
         const loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
-            loadingScreen.classList.add('hidden');
             setTimeout(() => {
-                loadingScreen.remove();
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 300);
             }, 500);
         }
     }
     
     /**
-     * Show shortcuts help
+     * Event emitter
      */
-    showShortcutsHelp() {
-        const shortcuts = [
-            { key: 'Ctrl + K', action: 'جستجو' },
-            { key: 'Ctrl + /', action: 'نمایش کلیدهای میانبر' },
-            { key: 'Escape', action: 'بستن مودال‌ها' }
-        ];
-        
-        const modal = this.components.get('modals');
-        if (modal) {
-            modal.show('shortcuts', {
-                title: 'کلیدهای میانبر',
-                content: this.renderShortcuts(shortcuts)
-            });
-        }
-    }
-    
-    /**
-     * Render shortcuts HTML
-     */
-    renderShortcuts(shortcuts) {
-        return `
-            <div class="shortcuts-list">
-                ${shortcuts.map(shortcut => `
-                    <div class="shortcut-item">
-                        <kbd>${shortcut.key}</kbd>
-                        <span>${shortcut.action}</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-    
-    /**
-     * Event emitter methods
-     */
-    on(event, handler) {
-        this.eventEmitter.addEventListener(event, handler);
-    }
-    
-    off(event, handler) {
-        this.eventEmitter.removeEventListener(event, handler);
-    }
-    
     emit(event, data = null) {
         this.eventEmitter.dispatchEvent(new CustomEvent(event, { detail: data }));
     }
     
     /**
-     * Error handler
+     * Event listener
+     */
+    on(event, handler) {
+        this.eventEmitter.addEventListener(event, handler);
+    }
+    
+    /**
+     * Handle errors
      */
     handleError(error) {
         console.error('Application Error:', error);
         
-        // Track error if analytics is available
+        // Send to analytics if available
         if (this.analytics) {
             this.analytics.trackError(error);
         }
         
-        // Show user-friendly error message
-        if (this.notifications) {
-            this.notifications.show('خطایی رخ داده است. لطفاً صفحه را به‌روزرسانی کنید.', 'error');
-        }
-    }
-}
-
-/**
- * API Client Class
- */
-class APIClient {
-    constructor(csrfToken) {
-        this.csrfToken = csrfToken;
-        this.baseURL = '/api';
-        this.timeout = 30000;
-        this.retryAttempts = 3;
-    }
-    
-    /**
-     * Make HTTP request
-     */
-    async request(url, options = {}) {
-        const config = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': this.csrfToken,
-                ...options.headers
-            },
-            credentials: 'same-origin',
-            ...options
-        };
-        
-        // Add request body for POST/PUT requests
-        if (config.method !== 'GET' && options.data) {
-            config.body = JSON.stringify(options.data);
-        }
-        
-        const fullURL = url.startsWith('http') ? url : `${this.baseURL}${url}`;
-        
-        try {
-            const response = await this.fetchWithTimeout(fullURL, config);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return await response.json();
-            }
-            
-            return await response.text();
-            
-        } catch (error) {
-            console.error('API Request failed:', error);
-            throw error;
-        }
-    }
-    
-    /**
-     * Fetch with timeout
-     */
-    async fetchWithTimeout(url, options) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-        
-        try {
-            const response = await fetch(url, {
-                ...options,
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            return response;
-        } catch (error) {
-            clearTimeout(timeoutId);
-            throw error;
-        }
-    }
-    
-    /**
-     * Convenience methods
-     */
-    get(url, options = {}) {
-        return this.request(url, { ...options, method: 'GET' });
-    }
-    
-    post(url, data, options = {}) {
-        return this.request(url, { ...options, method: 'POST', data });
-    }
-    
-    put(url, data, options = {}) {
-        return this.request(url, { ...options, method: 'PUT', data });
-    }
-    
-    delete(url, options = {}) {
-        return this.request(url, { ...options, method: 'DELETE' });
+        // Show user-friendly message
+        this.notifications.show('متأسفانه خطایی رخ داد. لطفاً صفحه را به‌روزرسانی کنید.', 'error');
     }
 }
 
@@ -384,113 +244,93 @@ class NotificationSystem {
         this.defaultDuration = 5000;
     }
     
-    /**
-     * Create notification container
-     */
     createContainer() {
-        const container = document.createElement('div');
-        container.className = 'toast-container';
-        container.setAttribute('aria-live', 'polite');
-        container.setAttribute('aria-atomic', 'true');
-        document.body.appendChild(container);
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.className = 'fixed top-4 right-4 z-50 space-y-2';
+            document.body.appendChild(container);
+        }
         return container;
     }
     
-    /**
-     * Show notification
-     */
-    show(message, type = 'info', options = {}) {
-        const id = this.generateId();
-        const notification = this.createNotification(id, message, type, options);
+    show(message, type = 'info', duration = this.defaultDuration) {
+        const id = Date.now().toString();
+        const notification = this.createNotification(id, message, type);
         
         this.container.appendChild(notification);
         this.notifications.set(id, notification);
         
-        // Animate in
-        requestAnimationFrame(() => {
-            notification.classList.add('show');
-        });
-        
-        // Auto dismiss
-        const duration = options.duration || this.defaultDuration;
+        // Auto remove
         if (duration > 0) {
             setTimeout(() => {
-                this.dismiss(id);
+                this.remove(id);
             }, duration);
         }
         
         return id;
     }
     
-    /**
-     * Create notification element
-     */
-    createNotification(id, message, type, options) {
+    createNotification(id, message, type) {
         const notification = document.createElement('div');
-        notification.className = `toast-modern toast-${type}`;
-        notification.setAttribute('role', 'alert');
-        notification.setAttribute('aria-labelledby', `toast-${id}-title`);
-        
-        const icon = this.getIcon(type);
-        
-        notification.innerHTML = `
-            <div class="toast-content">
-                <div class="toast-icon">${icon}</div>
-                <div class="toast-message">
-                    ${options.title ? `<div class="toast-title" id="toast-${id}-title">${options.title}</div>` : ''}
-                    <div class="toast-text">${message}</div>
-                </div>
-                <button type="button" class="toast-close" aria-label="بستن">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            ${options.actions ? this.renderActions(options.actions) : ''}
+        notification.className = `
+            notification-item max-w-sm bg-white dark:bg-gray-800 border-l-4 p-4 shadow-lg rounded-lg
+            transform translate-x-full transition-transform duration-300 ease-out
+            ${this.getTypeClasses(type)}
         `;
         
-        // Add close handler
-        const closeBtn = notification.querySelector('.toast-close');
-        closeBtn.addEventListener('click', () => this.dismiss(id));
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    ${this.getIcon(type)}
+                </div>
+                <div class="mr-3">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        ${message}
+                    </p>
+                </div>
+                <div class="mr-auto pl-3">
+                    <button class="inline-flex text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" 
+                            onclick="window.app.notifications.remove('${id}')">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 10);
         
         return notification;
     }
     
-    /**
-     * Get icon for notification type
-     */
+    getTypeClasses(type) {
+        const classes = {
+            'success': 'border-green-400',
+            'error': 'border-red-400',
+            'warning': 'border-yellow-400',
+            'info': 'border-blue-400'
+        };
+        return classes[type] || classes.info;
+    }
+    
     getIcon(type) {
         const icons = {
-            success: '<i class="fas fa-check-circle"></i>',
-            error: '<i class="fas fa-exclamation-triangle"></i>',
-            warning: '<i class="fas fa-exclamation-circle"></i>',
-            info: '<i class="fas fa-info-circle"></i>'
+            'success': '<i class="fas fa-check-circle text-green-400"></i>',
+            'error': '<i class="fas fa-exclamation-circle text-red-400"></i>',
+            'warning': '<i class="fas fa-exclamation-triangle text-yellow-400"></i>',
+            'info': '<i class="fas fa-info-circle text-blue-400"></i>'
         };
         return icons[type] || icons.info;
     }
     
-    /**
-     * Render action buttons
-     */
-    renderActions(actions) {
-        return `
-            <div class="toast-actions">
-                ${actions.map(action => `
-                    <button type="button" class="btn-sm-modern" data-action="${action.key}">
-                        ${action.label}
-                    </button>
-                `).join('')}
-            </div>
-        `;
-    }
-    
-    /**
-     * Dismiss notification
-     */
-    dismiss(id) {
+    remove(id) {
         const notification = this.notifications.get(id);
         if (notification) {
-            notification.classList.remove('show');
-            notification.classList.add('hide');
-            
+            notification.classList.add('translate-x-full');
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
@@ -498,20 +338,6 @@ class NotificationSystem {
                 this.notifications.delete(id);
             }, 300);
         }
-    }
-    
-    /**
-     * Clear all notifications
-     */
-    clear() {
-        this.notifications.forEach((_, id) => this.dismiss(id));
-    }
-    
-    /**
-     * Generate unique ID
-     */
-    generateId() {
-        return `toast_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 }
 
@@ -602,29 +428,98 @@ class StorageManager {
             console.warn('Failed to remove from storage:', error);
         }
     }
+}
+
+/**
+ * API Client Class
+ */
+class APIClient {
+    constructor(csrfToken) {
+        this.csrfToken = csrfToken;
+        this.baseURL = '/api';
+        this.timeout = 30000;
+        this.retryAttempts = 3;
+    }
     
     /**
-     * Clear all items with prefix
+     * Make HTTP request
      */
-    clear() {
-        try {
-            if (this.storage instanceof Map) {
-                for (const key of this.storage.keys()) {
-                    if (key.startsWith(this.prefix)) {
-                        this.storage.delete(key);
-                    }
-                }
-            } else {
-                for (let i = this.storage.length - 1; i >= 0; i--) {
-                    const key = this.storage.key(i);
-                    if (key && key.startsWith(this.prefix)) {
-                        this.storage.removeItem(key);
-                    }
-                }
-            }
-        } catch (error) {
-            console.warn('Failed to clear storage:', error);
+    async request(url, options = {}) {
+        const config = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.csrfToken,
+                ...options.headers
+            },
+            credentials: 'same-origin',
+            ...options
+        };
+        
+        // Add request body for POST/PUT requests
+        if (config.method !== 'GET' && options.data) {
+            config.body = JSON.stringify(options.data);
         }
+        
+        const fullURL = url.startsWith('http') ? url : `${this.baseURL}${url}`;
+        
+        try {
+            const response = await this.fetchWithTimeout(fullURL, config);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            }
+            
+            return await response.text();
+            
+        } catch (error) {
+            console.error('API Request failed:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Fetch with timeout
+     */
+    async fetchWithTimeout(url, options) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+        
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return response;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
+    }
+    
+    /**
+     * Convenience methods
+     */
+    async get(url, options = {}) {
+        return this.request(url, { ...options, method: 'GET' });
+    }
+    
+    async post(url, data, options = {}) {
+        return this.request(url, { ...options, method: 'POST', data });
+    }
+    
+    async put(url, data, options = {}) {
+        return this.request(url, { ...options, method: 'PUT', data });
+    }
+    
+    async delete(url, options = {}) {
+        return this.request(url, { ...options, method: 'DELETE' });
     }
 }
 
@@ -632,12 +527,11 @@ class StorageManager {
  * Analytics Class
  */
 class Analytics {
-    constructor(userId) {
-        this.userId = userId;
+    constructor(username) {
+        this.username = username;
         this.sessionId = this.generateSessionId();
         this.events = [];
         this.flushInterval = 30000; // 30 seconds
-        this.maxEvents = 50;
         
         this.startFlushTimer();
         this.trackPageView();
@@ -648,7 +542,7 @@ class Analytics {
      */
     trackPageView() {
         this.track('page_view', {
-            url: window.location.href,
+            path: window.location.pathname,
             title: document.title,
             referrer: document.referrer
         });
@@ -658,24 +552,17 @@ class Analytics {
      * Track event
      */
     track(event, properties = {}) {
-        const eventData = {
+        this.events.push({
             event,
             properties: {
                 ...properties,
                 timestamp: Date.now(),
                 session_id: this.sessionId,
-                user_id: this.userId,
-                url: window.location.href,
-                user_agent: navigator.userAgent
+                username: this.username,
+                user_agent: navigator.userAgent,
+                url: window.location.href
             }
-        };
-        
-        this.events.push(eventData);
-        
-        // Flush if we have too many events
-        if (this.events.length >= this.maxEvents) {
-            this.flush();
-        }
+        });
     }
     
     /**
@@ -705,7 +592,7 @@ class Analytics {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': window.APP_CONFIG.csrfToken
+                    'X-CSRFToken': window.APP_CONFIG?.csrfToken || ''
                 },
                 body: JSON.stringify({ events: eventsToSend })
             });
@@ -761,75 +648,48 @@ class RealtimeConnection {
     async connect() {
         try {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.host}/ws/`;
+            const wsUrl = `${protocol}//${window.location.host}/ws/updates/`;
             
             this.ws = new WebSocket(wsUrl);
-            this.setupEventHandlers();
+            
+            this.ws.onopen = () => {
+                console.log('WebSocket connected');
+                this.reconnectAttempts = 0;
+                this.startHeartbeat();
+                this.emit('connected');
+            };
+            
+            this.ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    this.emit(data.type, data.data);
+                } catch (error) {
+                    console.error('Failed to parse WebSocket message:', error);
+                }
+            };
+            
+            this.ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                this.stopHeartbeat();
+                this.emit('disconnected');
+                this.scheduleReconnect();
+            };
+            
+            this.ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                this.emit('error', error);
+            };
             
         } catch (error) {
-            console.error('Failed to connect to WebSocket:', error);
+            console.error('Failed to connect WebSocket:', error);
             this.scheduleReconnect();
-        }
-    }
-    
-    /**
-     * Setup WebSocket event handlers
-     */
-    setupEventHandlers() {
-        this.ws.onopen = () => {
-            console.log('✅ WebSocket connected');
-            this.reconnectAttempts = 0;
-            this.startHeartbeat();
-            this.emit('connected');
-        };
-        
-        this.ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                this.handleMessage(data);
-            } catch (error) {
-                console.error('Failed to parse WebSocket message:', error);
-            }
-        };
-        
-        this.ws.onclose = () => {
-            console.log('❌ WebSocket disconnected');
-            this.stopHeartbeat();
-            this.emit('disconnected');
-            this.scheduleReconnect();
-        };
-        
-        this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            this.emit('error', error);
-        };
-    }
-    
-    /**
-     * Handle incoming message
-     */
-    handleMessage(data) {
-        const { type, payload } = data;
-        
-        switch (type) {
-            case 'device_status_update':
-                this.emit('device:status', payload);
-                break;
-            case 'notification':
-                this.emit('notification', payload);
-                break;
-            case 'system_alert':
-                this.emit('alert', payload);
-                break;
-            default:
-                this.emit(type, payload);
         }
     }
     
     /**
      * Send message
      */
-    send(type, data = {}) {
+    send(type, data = null) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ type, data }));
         }
@@ -918,25 +778,10 @@ class BaseComponent {
     }
     
     async init() {
-        if (this.initialized) return;
-        
-        await this.render();
-        this.bindEvents();
         this.initialized = true;
     }
     
-    async render() {
-        // Override in subclasses
-    }
-    
-    bindEvents() {
-        // Override in subclasses
-    }
-    
     destroy() {
-        if (this.element && this.element.parentNode) {
-            this.element.parentNode.removeChild(this.element);
-        }
         this.initialized = false;
     }
 }
@@ -947,52 +792,45 @@ class BaseComponent {
 class Navigation extends BaseComponent {
     async init() {
         await super.init();
-        this.setupScrollEffect();
-        this.setupMobileToggle();
+        this.setupMobileMenu();
+        this.setupDropdowns();
     }
     
-    setupScrollEffect() {
-        let lastScrollY = window.scrollY;
+    setupMobileMenu() {
+        const menuToggle = document.querySelector('.mobile-menu-toggle');
+        const mobileMenu = document.querySelector('.mobile-menu');
         
-        window.addEventListener('scroll', () => {
-            const navbar = document.querySelector('.navbar-modern');
-            if (!navbar) return;
-            
-            if (window.scrollY > 100) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-            
-            // Auto-hide on scroll down
-            if (window.scrollY > lastScrollY && window.scrollY > 200) {
-                navbar.style.transform = 'translateY(-100%)';
-            } else {
-                navbar.style.transform = 'translateY(0)';
-            }
-            
-            lastScrollY = window.scrollY;
-        });
-    }
-    
-    setupMobileToggle() {
-        const toggle = document.querySelector('.navbar-toggler');
-        const menu = document.querySelector('.navbar-collapse');
-        
-        if (toggle && menu) {
-            toggle.addEventListener('click', () => {
-                menu.classList.toggle('show');
-                toggle.classList.toggle('active');
-            });
-            
-            // Close menu when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!toggle.contains(e.target) && !menu.contains(e.target)) {
-                    menu.classList.remove('show');
-                    toggle.classList.remove('active');
-                }
+        if (menuToggle && mobileMenu) {
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.toggle('show');
+                menuToggle.classList.toggle('active');
             });
         }
+    }
+    
+    setupDropdowns() {
+        const dropdowns = document.querySelectorAll('.dropdown');
+        
+        dropdowns.forEach(dropdown => {
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            
+            if (toggle && menu) {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    menu.classList.toggle('show');
+                    toggle.classList.toggle('active');
+                });
+                
+                // Close on outside click
+                document.addEventListener('click', (e) => {
+                    if (!dropdown.contains(e.target)) {
+                        menu.classList.remove('show');
+                        toggle.classList.remove('active');
+                    }
+                });
+            }
+        });
     }
 }
 
@@ -1050,69 +888,20 @@ class Dashboard extends BaseComponent {
         }
     }
     
-    updateDeviceList(devices) {
-        const container = document.querySelector('[data-device-list]');
-        if (!container) return;
+    animateValue(element, start, end, duration = 1000) {
+        const range = end - start;
+        const increment = range / (duration / 16);
+        let current = start;
         
-        container.innerHTML = devices.map(device => this.renderDeviceCard(device)).join('');
-    }
-    
-    renderDeviceCard(device) {
-        const statusClass = device.is_online ? 'online' : 'offline';
-        const statusText = device.is_online ? 'آنلاین' : 'آفلاین';
-        
-        return `
-            <div class="device-card ${statusClass}" data-device-id="${device.id}">
-                <div class="device-header">
-                    <div class="device-info">
-                        <h3>${device.name}</h3>
-                        <p>${device.location || 'مکان نامشخص'}</p>
-                    </div>
-                    <div class="device-status">
-                        <div class="status-dot ${statusClass}"></div>
-                        <span class="badge-modern badge-${statusClass}">${statusText}</span>
-                    </div>
-                </div>
-                <div class="device-body">
-                    <div class="device-metrics">
-                        <div class="metric-item">
-                            <span class="metric-value">${device.uptime || '0'}</span>
-                            <span class="metric-label">آپ‌تایم</span>
-                        </div>
-                        <div class="metric-item">
-                            <span class="metric-value">${device.rssi || 'N/A'}</span>
-                            <span class="metric-label">قدرت سیگنال</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    updateCharts(chartsData) {
-        const chartManager = this.app.components.get('charts');
-        if (chartManager) {
-            chartManager.updateAll(chartsData);
-        }
-    }
-    
-    animateValue(element, start, end) {
-        const duration = 1000;
-        const startTime = Date.now();
-        
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
+        const timer = setInterval(() => {
+            current += increment;
+            element.textContent = Math.round(current);
             
-            const current = Math.floor(start + (end - start) * progress);
-            element.textContent = current.toLocaleString('fa-IR');
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                element.textContent = end;
+                clearInterval(timer);
             }
-        };
-        
-        animate();
+        }, 16);
     }
     
     startAutoRefresh() {
@@ -1123,30 +912,9 @@ class Dashboard extends BaseComponent {
     
     setupRealtimeUpdates() {
         if (this.app.realtime) {
-            this.app.realtime.on('device:status', (data) => {
+            this.app.realtime.on('device_update', (data) => {
                 this.updateDeviceStatus(data);
             });
-            
-            this.app.realtime.on('notification', (data) => {
-                this.app.notifications.show(data.message, data.type);
-            });
-        }
-    }
-    
-    updateDeviceStatus(data) {
-        const deviceCard = document.querySelector(`[data-device-id="${data.device_id}"]`);
-        if (deviceCard) {
-            const statusDot = deviceCard.querySelector('.status-dot');
-            const statusBadge = deviceCard.querySelector('.badge-modern');
-            
-            const statusClass = data.is_online ? 'online' : 'offline';
-            const statusText = data.is_online ? 'آنلاین' : 'آفلاین';
-            
-            // Update classes
-            deviceCard.className = `device-card ${statusClass}`;
-            statusDot.className = `status-dot ${statusClass}`;
-            statusBadge.className = `badge-modern badge-${statusClass}`;
-            statusBadge.textContent = statusText;
         }
     }
     
@@ -1158,146 +926,13 @@ class Dashboard extends BaseComponent {
     }
 }
 
-/**
- * Form Manager Component
- */
-class FormManager extends BaseComponent {
-    async init() {
-        await super.init();
-        this.setupForms();
-        this.setupValidation();
-    }
-    
-    setupForms() {
-        document.querySelectorAll('form[data-ajax]').forEach(form => {
-            form.addEventListener('submit', this.handleAjaxSubmit.bind(this));
-        });
-        
-        document.querySelectorAll('form[data-validate]').forEach(form => {
-            this.setupFormValidation(form);
-        });
-    }
-    
-    async handleAjaxSubmit(event) {
-        event.preventDefault();
-        
-        const form = event.target;
-        const formData = new FormData(form);
-        const submitBtn = form.querySelector('[type="submit"]');
-        
-        // Disable submit button
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'در حال ارسال...';
-        }
-        
-        try {
-            const response = await this.app.api.post(form.action, Object.fromEntries(formData));
-            
-            if (response.success) {
-                this.app.notifications.show(response.message || 'عملیات با موفقیت انجام شد', 'success');
-                
-                // Redirect if specified
-                if (response.redirect) {
-                    window.location.href = response.redirect;
-                }
-            } else {
-                this.showFormErrors(form, response.errors);
-            }
-            
-        } catch (error) {
-            console.error('Form submission error:', error);
-            this.app.notifications.show('خطا در ارسال فرم', 'error');
-        } finally {
-            // Re-enable submit button
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = submitBtn.dataset.originalText || 'ارسال';
-            }
-        }
-    }
-    
-    setupFormValidation(form) {
-        const inputs = form.querySelectorAll('input, textarea, select');
-        
-        inputs.forEach(input => {
-            input.addEventListener('blur', () => this.validateField(input));
-            input.addEventListener('input', () => this.clearFieldError(input));
-        });
-    }
-    
-    validateField(field) {
-        const value = field.value.trim();
-        const errors = [];
-        
-        // Required validation
-        if (field.hasAttribute('required') && !value) {
-            errors.push('این فیلد الزامی است');
-        }
-        
-        // Email validation
-        if (field.type === 'email' && value) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(value)) {
-                errors.push('آدرس ایمیل معتبر نیست');
-            }
-        }
-        
-        // Phone validation
-        if (field.type === 'tel' && value) {
-            const phoneRegex = /^09\d{9}$/;
-            if (!phoneRegex.test(value)) {
-                errors.push('شماره موبایل معتبر نیست');
-            }
-        }
-        
-        // Password validation
-        if (field.type === 'password' && value) {
-            if (value.length < 8) {
-                errors.push('رمز عبور باید حداقل ۸ کاراکتر باشد');
-            }
-        }
-        
-        // Show errors
-        if (errors.length > 0) {
-            this.showFieldError(field, errors[0]);
-            return false;
-        } else {
-            this.clearFieldError(field);
-            return true;
-        }
-    }
-    
-    showFieldError(field, message) {
-        field.classList.add('error');
-        
-        let errorElement = field.parentNode.querySelector('.form-error-modern');
-        if (!errorElement) {
-            errorElement = document.createElement('div');
-            errorElement.className = 'form-error-modern';
-            field.parentNode.appendChild(errorElement);
-        }
-        
-        errorElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-    }
-    
-    clearFieldError(field) {
-        field.classList.remove('error');
-        const errorElement = field.parentNode.querySelector('.form-error-modern');
-        if (errorElement) {
-            errorElement.remove();
-        }
-    }
-    
-    showFormErrors(form, errors) {
-        for (const [fieldName, messages] of Object.entries(errors)) {
-            const field = form.querySelector(`[name="${fieldName}"]`);
-            if (field && messages.length > 0) {
-                this.showFieldError(field, messages[0]);
-            }
-        }
-    }
-}
+// Stub classes for other components
+class DeviceManager extends BaseComponent {}
+class UserProfile extends BaseComponent {}
+class Settings extends BaseComponent {}
+class ModalManager extends BaseComponent {}
+class FormManager extends BaseComponent {}
+class ChartManager extends BaseComponent {}
 
 /**
  * Utility Functions
@@ -1319,25 +954,24 @@ const utils = {
     },
     
     /**
-     * Throttle function
+     * Format date
      */
-    throttle(func, limit) {
-        let inThrottle;
-        return function() {
-            const args = arguments;
-            const context = this;
-            if (!inThrottle) {
-                func.apply(context, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
+    formatDate(date, options = {}) {
+        const defaultOptions = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         };
+        
+        return new Intl.DateTimeFormat('fa-IR', { ...defaultOptions, ...options }).format(new Date(date));
     },
     
     /**
-     * Format bytes to human readable
+     * Format file size
      */
-    formatBytes(bytes, decimals = 2) {
+    formatFileSize(bytes, decimals = 2) {
         if (bytes === 0) return '0 بایت';
         
         const k = 1024;
